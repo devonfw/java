@@ -1,0 +1,116 @@
+:imagesdir: ../images
+
+= JPA
+
+== General conventions
+
+=== Spring Data JPA with Hibernate
+
+* The standard for accessing relational databases in Java is the link:http://www.oracle.com/technetwork/java/javaee/tech/persistence-jsp-140049.html[Java Persistence API (JPA)]. 
+* link:http://hibernate.org/orm/[Hibernate] is the has proven to be a reliable implementation of JPA.
+* Use the JPA where ever possible and use vendor (hibernate) specific features only for situations when JPA does not provide a solution. In the latter case consider first if you really need the feature.
+
+
+=== Naming conventions
+
+* Entities should be named <EntityName>Entity
+* Repositories should be named <EntityName>Repository
+
+== Entities
+
+=== Entities must not contain business logic
+
+Entities must be simple POJOs and not contain business logic.
+
+=== Default columns
+
+There's a number of columns (attributes) each entity should contain: 
+
+==== Id specification
+
+* Add a `private Long id`
+* The id needs to  be annotated with link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/id[`@Id`].
+* The id uses database sequence for generation of the id. link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/generatedvalue[`@GeneratedValue(strategy = GenerationType.SEQUENCE)`].
+* Use `Long` as type because it is the most efficient representation for the database. 
+Therefore looking up a record and joins are faster compared to e.g. `String` or `UUID`. 
+
+==== Modification Counter
+
+
+* Add a `private int modificationCounter`. 
+* The modification counter is used as version of the entity for optimistic locking.
+Whenever the object gets modified and persisted this counter will be increased. 
+* Use int for the modification counter.
+* Annotate the modification counter with link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/version[`@Version`].
+
+[#blobs]
+=== BLOBs must not be stored in byte arrays
+
+Byte array will cause problems if BLOBs get large because the entire BLOB is loaded into the RAM. Use the datatype link:https://docs.oracle.com/javase/7/docs/api/java/sql/Blob.html[Blob]. Stream the BLOB directly from the database to the user when the data is requested via an API.
+
+=== Do not mix granularity of temporal values
+
+* Always use link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/temporaltype[`TemporalType.TIMESTAMP`] with link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/temporal[`@Temporal`].
+* Mixing with other granularities causes problems when comparing one value to another.
+
+=== Always use lazy loading
+
+Application are strongly advised to always use lazy loading. Always override the default of the relationship annotation by providing link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/manytomany#fetch()[`fetch = FetchType.LAZY`], even if this is the default already.
+
+=== Map enums to dedicated string
+
+Mapping enums to their ordinal or name is fragile when it comes to code changes and refactoring. Define a dedicated link:https://www.baeldung.com/java-enum-values#adding-constructor[string in each enum value] for database representation. Enums then have to be treated as a custom datatype with a converter.
+
+=== Use single table inheritance
+
+There are several ways to handle link:http://openjpa.apache.org/builds/1.0.4/apache-openjpa-1.0.4/docs/manual/jpa_overview_mapping_inher.html#jpa_overview_mapping_inher_tpc[inheritance in databases]. In most cases, 'single table' should be used, because it is usually the fastest way to do the mapping, as no joins are needed when retrieving, searching or persisting entities. 
+
+== Accessing the data
+
+
+=== Use Spring Respositories
+For each entity `«EntityName»Entity` an interface is created with the name `«EntityName»Repository` extending link:https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/repository/JpaRepository.html[`JpaRepository`].
+
+
+=== Use `@Query` for simple custom queries
+
+The link:https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/repository/Query.html[`@Query`] annotation is used for easy cases where the needed results can be found by a simple SQL query.
+
+NOTE: In Quarkus, native and named queries via the `@Query` annotation are currently not supported. So in Quarkus fragments have to be used.
+
+
+=== Use fragments for extensive access with individual implementation
+
+https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repositories.custom-implementations
+
+=== Use pagination
+
+When dealing with large amounts of data, an efficient method of retrieving the data is required. Paging is used to process only small subsets of the entire data set.
+
+If you are using Spring Data repositories you will get pagination support out of the box by providing the interfaces link:https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/domain/Pageable.html[Page] and link:https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/domain/Pageable.html[Pageable].
+
+=== Do not iterate over 1:n and n:m relations
+
+When iterating over 1:n and n:m this most likely will end up in performance problems due to the N+1 problem. This means one query is used to fetch the entity and N queries are used to fetch the related entities.
+
+To avoid the N+1 problem
+
+* create special functions to load the entity with the related entities `<EntityName>Repo.findBy<EntityName>With<RelatedEntityName>ById(id)`. This will solve the problem with one query. To do that join the tables of the entity and the related entities.
+* load the related entities with the repository of the related entity `<RelatedEntityName>Repo.findBy<EntityName>Id(id)`. This will solve the problem with two queries if the entity and the related entities are needed and with one query if only the related entities are needed.
+
+== Security
+
+=== Do not use string concatenation
+
+Never build queries with string concatenation or your code might be vulnerable through link:http://en.wikipedia.org/wiki/SQL_injection[SQL-Injections]. Consider using link:https://www.baeldung.com/jpa-query-parameters[Query parameters].
+
+=== Use limited permissions
+
+Operate the application with a database user that has limited permissions so the user can not modify the SQL schema (e.g. drop tables). For initializing the schema (DDL) or to do schema migrations use a separate user that is not used by the application itself.
+
+== References
+
+* link:https://docs.spring.io/spring-data/jpa/docs/current/api/[Spring data JPA docs]
+* link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/package-summary.html[jakarta persistence docs]
+* link:https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/repository/JpaRepository.html#findAll--[findAll]
+* link:https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/repository/CrudRepository.html?is-external=true#findById-ID-[findById]

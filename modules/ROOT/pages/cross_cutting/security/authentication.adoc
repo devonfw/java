@@ -1,0 +1,85 @@
+= Authentication
+
+== Term definition
+|===
+| Term | Description
+
+| Authentication 
+| Verification that somebody interacting with the system is the actual subject for whom he claims to be.
+
+| http://docs.oracle.com/javase/7/docs/api/java/security/Principal.html[_principal_]
+a| The one authenticated.  
+There are two forms of principals that need to be distinguished: 
+
+* `human users`
+* `autonomous systems`. 
+
+| _user_ 
+| A common term used to refer to any principal even though it may not be a human. 
+
+| _credential_ 
+| A secret provided by the principal. 
+The most simple form of credentials is a password.
+
+|===
+
+== Authentication mechanism
+
+=== Basic Auth
+https://en.wikipedia.org/wiki/Basic_access_authentication
+
+WARNING: Only secure when used via SSL secured connection. Otherwise principal and credentials are exposed!
+
+|===
+| Benefits | Concerns
+
+a|
+* If used with SSL it is basically secure
+* Easy to implement and use
+* Stateless
+
+a|
+* Authentication transmission is not very secure and vulnerable to man in the middle attacks
+* Credentials can not be easily revoked
+* No anonymized login with third party possible. See JWT/OAUTH
+
+|===
+
+=== JWT
+https://jwt.io/introduction
+JWT tokens are usually requested from a third party (or embedded tool) via username and password. 
+The requested token has a limited expiration and contains details about the user.
+Therefore, JWTs are tightly coupled with authorization as well.
+
+|===
+| Benefits | Concerns
+
+a|
+* Very secure
+* Mechanism for external tool support
+* Authorization mechanism from external tool possible
+* Stateless
+* SSO possible
+
+a|
+* An issuer is needed, that creates the token. 
+This can be a external tool, an embedded tool, or the server itself. 
+In any case this increases the effort for setup
+* More effort in implementation
+
+|===
+
+
+=== Form Login
+
+A form login let's the user enter the credentials on a form based website. 
+The user is then logged in which is usually verified by an open session.
+devonfw recommends stateless applications.
+Therefore, a better and alternative approach is to let the user authenticate to a JWT issuer using the credentials returning a token that can be used for further requests.
+
+== References:
+* https://quarkus.io/guides/security-jwt
+* https://quarkus.io/guides/security-built-in-authentication
+* https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/form.html
+* https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/user-details-service.html
+* https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/basic.html

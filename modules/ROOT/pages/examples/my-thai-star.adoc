@@ -1,0 +1,73 @@
+= My-Thai-Star Sample Application
+
+My-Thai-Star is a restaurant, that has a website for the usual tasks of a restaurant. This web application is taken as an example in various articles to describe methods, structures or implementation on a concrete and known example.
+
+My-Thai-Star has the following user groups:
+
+== Use Cases
+
+Guest:: Guests are users that want to visit the restaurant and eat there.
+Waiter:: Waiters are users of the website that will manage the orders and bookings of the guests.
+Manager:: The manager of the restaurant is interested in KPIs of the restaurant for managing and controlling his restaurant.
+
+Per User group there are separate use cases that need to be considered:
+
+=== Guest
+
+A guest should be able to
+
+* take a look at the menu of the restaurant
+* find out the costs of single dishes
+* check the ingredients (e.g. for allergists)
+* book a table
+
+Convenience functionality:
+
+* the user can book the dish already upfront and combine it with the table reservation. This gives the cook the option to predict the meals and to reduce waiting times and waste
+* invite friends to the booking, so they're notified and can also book their food upfront
+
+=== Waiter
+
+The waiter needs to
+
+* view the the current table bookings
+* check the orders of the guests
+
+=== Manager
+The manager wants to
+
+* see a prediction of bookings for certain times
+
+== Conceptual split into business components
+
+Based on the mentioned use cases the application can be split up into business components:
+
+[NOTE]
+====
+This split does *not* imply any technical architecture. Each business component mentioned here could be a service in a microservice architecture, a component in Modulith or anything else.
+
+The definition of a business split should help to build examples in devonfw that is consistent across devonfw.
+====
+
+|===
+| Business Component | Description
+
+| Booking Management | Manages the table bookings of users. It checks the available tables, validates requests, accepts cancellations. Invited friends to a booking are also managed in this component.
+
+|Dish Management | Responsible for the dishes served in the restaurant. This includes the dish itself, categories (e.g. starter, main, desert, drinks, ...), prices and the ingredients.
+
+|Order Management | Handles the orders of guests.
+
+|Prediction Management | Does predictions for the manager based on past events
+
+|===
+
+Furthermore, there are some cross cutting components to consider:
+
+|===
+|Component | Description
+
+|Image Management |  Handles the images on the website. 
+|Mail Service | Responsible for sending mails.
+|User Management | Manages the users (guests, waiters, managers)
+|===

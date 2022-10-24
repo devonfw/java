@@ -1,0 +1,46 @@
+= JSON
+
+JSON (JavaScript Object Notation) is a format to represent and exchange data in a human readable form.
+See https://www.json.org/json-en.html for a formal definition. 
+JSON is easier explained here: https://www.w3schools.com/js/js_json_intro.asp.
+
+== JSON parser
+
+devonfw recommends link:https://github.com/FasterXML/jackson[FasterXMLs Jackson] as JSON parser. There's a useful series on Jackson on Baeldung:
+https://www.baeldung.com/jackson
+
+
+[tabs] 
+==== 
+Spring:: 
++ 
+-- 
+Spring offers a default support for mapping with Jackson, when spring-starter-web is used.
+--
+
+Quarkus::
++
+--
+Quarkus offers the following extension:
+
+This extension adds the usual quarkus-resteasy-reactive functionality and adds the mapping using Jackson.
+
+https://quarkus.io/guides/rest-json
+--
+====
+
+// == Certain datatype considerations
+
+// === DataTime
+
+// https://stackoverflow.com/questions/10286204/what-is-the-right-json-date-format
+// TODO: Is this the default in jackson? If not how to parse it to this format? -> Sneha should document her findings
+
+// === Currency
+
+// Easiest would be string + currency and than mapping in BigDecimal
+// TODO: Add a guide on how to parse currency -> Sneha should document her findings
+
+== References
+- https://stackoverflow.com/questions/30362446/deserialize-json-with-jackson-into-polymorphic-types-a-complete-example-is-giv
+- https://www.baeldung.com/jackson

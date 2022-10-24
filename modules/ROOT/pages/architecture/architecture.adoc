@@ -1,0 +1,3 @@
+= Architecture
+
+On micro architecture level devonfw is strictly aligned with the SEAguide TODO: Link -> remove article -> empty node in menu -> rename not to Architecture

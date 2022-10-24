@@ -1,0 +1,122 @@
+= RESTful Exception Handling
+
+This article gives advice on a proper exception handling in the service layer.
+It is important to catch all exceptions and map them to a meaningful result and not pass implementation details to the outside.
+If not handled correct a generated error message is send to the client.
+
+== Response messages for exceptions
+
+An error response message contains the following information:
+
+[cols="~,~,~"]
+|===
+
+| Response Header | HTTP status code | Status Code corresponding to the error
+
+// .3+ = 3 row span
+// .^ = vertical centered
+.3+.^| Response body message 
+| message
+| A human-readable message describing the error
+
+| code   
+| A code identifying the concrete error
+
+| uuid 
+| An identifier (generally the correlation id) to help identify corresponding requests in logs
+
+|===
+
+== Exception Types
+
+=== Security Exceptions
+
+* Do not expose details of security exceptions in the body of the response 
+
+[cols="~,~,~"]
+|===
+
+| Response Header | HTTP status code | 403 (FORBIDDEN)
+
+.3+.^| Response body message 
+| message
+| "forbidden"
+
+| code   
+| `null`
+
+| uuid 
+| An identifier (generally the correlation id) to help identify corresponding requests in logs
+
+|===
+
+
+[TIP]
+====
+
+For debugging it makes sense to configure a parameter that allows returning the exception details on developer environments.
+E.g.: adding a property that is false on default and when set to true the details are exposed. This must not be possible on the production environment.
+
+====
+
+=== Validation Exceptions
+
+* Validation errors include *all* validation issues that do not fullfil the requirements, because it is a tedious work to figure out and fix all errors request by request.
+
+[cols="~,~,~"]
+|===
+
+| Response Header | HTTP status code | 400 (BAD REQUEST)
+
+.3+.^| Response body message 
+| message
+| All violated constraints.
+
+| code   
+| ValidationError
+
+| uuid 
+| A unique identifier to later correspond to the logs, to identify real problems with login.
+
+|===
+
+=== Business Exceptions
+
+[cols="~,~,~"]
+|===
+
+| Response Header | HTTP status code | Depending on the reason of the exception. Default: 400 (BAD REQUEST)
+
+.3+.^| Response body message 
+| message 
+| A english message from the exception (translation should be done in the client)
+
+| code   
+| Exception specific code
+
+| uuid 
+| A unique identifier to later correspond to the logs, to identify real problems with login.
+
+|===
+
+=== Technical Exceptions
+
+[cols="~,~,~"]
+|===
+
+| Response Header | HTTP status code | 500 (INTERNAL_SERVER_ERROR) For technical exceptions
+
+.3+.^| Response body message 
+| message 
+| Hide the concrete error details and display "An unexpected error has occurred! We apologize any inconvenience. Please try again later."
+
+| code   
+| Exception specific code
+
+| uuid 
+| A unique identifier to later correspond to the logs, to identify real problems with login.
+
+|===
+
+
+// TODO: Provide an example using all four exception types and an exception mapper

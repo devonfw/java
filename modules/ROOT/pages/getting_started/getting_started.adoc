@@ -1,0 +1,15 @@
+= Getting started
+
+The basic way of working with devon4j:
+
+* [ ] Download Spring or Quarkus from the official websites
+** https://start.spring.io/
+** https://code.quarkus.io/
+* [ ] Establish the xref:../cross_cutting/coding_conventions.adoc[coding conventions] in the team
+* [ ] Align the architecture of the new service with an xref:../architecture/architecture.adoc[architecture pattern]
+* [ ] Prepare the xref:../cross_cutting/exceptions.adoc[exception handling]
+* [ ] Configure the service for xref:../cross_cutting/logging.adoc[logging]
+
+Specialized instructions can be found in the child pages of this guide.
+
+The documentations contain examples that show implementations and can be used to copy and paste code snippets into the own project.

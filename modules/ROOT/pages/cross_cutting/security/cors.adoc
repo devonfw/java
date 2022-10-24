@@ -1,0 +1,14 @@
+= CORS
+
+For more information about CORS see:
+* https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+* https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#cors
+
+== Context
+
+* Relevant when developing a web client separately from the server
+
+== References
+* https://docs.spring.io/spring-security/reference/features/exploits/headers.html#headers-cross-origin-policies
+* https://docs.spring.io/spring-framework/docs/4.3.x/spring-framework-reference/html/cors.html
+* https://quarkus.io/guides/http-reference#cors-filter

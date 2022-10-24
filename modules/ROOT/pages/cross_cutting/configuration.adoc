@@ -1,0 +1,126 @@
+= Configuration
+
+== Overview
+
+[tabs]
+====
+Spring::
++
+--
+A detailed overview of Springs configuration mechanisms is available here:
+
+* https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#features.external-config
+* https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#features.profiles 
+
+A list of common properties provided by spring can be found here:
+
+* https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+--
+====
+== Profile configuration files
+
+[tabs]
+====
+Spring::
++
+--
+
+With link:https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#features.profiles[Spring Profiles] parts of the configuration can be made available in certain environments. The most prominent example might be the database config for dev and prod. Imagine on dev a h2 is used, whereas in prod a PostgreSQL instance needs to be connected.
+
+In Spring there're multiple ways to configure and use profiles:
+
+* link:https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#features.external-config.files.profile-specific[Profile specific files] can be used to store profile related config. By setting `spring.profiles.active` to one of the profiles, the selected profile is considered.
+* Using `spring.config.activate.on-profile` in different property files, that mark those properties as configuration of a certain profile. Again the profile needs to be set form outside.
+* Using link:https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#features.external-config.files[external application properties] that reside outside the jar
+
+It has proven a good practices to use external application properties in combination with defaults inside the jar.
+Therefore, the following properties files are used in devonfw application:
+
+* `src/main/resources/application.properties` providing a default configuration - bundled and deployed with the application package. It further acts as a template to derive a tailored minimal environment-specific configuration.
+* `src/main/resources/config/application.properties` providing additional properties only used at development time (for all local deployment scenarios). This property file is excluded from all packaging.
+* `src/test/resources/config/application.properties` providing additional properties only used for testing.
+
+For other environments where the software gets deployed such as `test`, `acceptance` and `production` a tailored copy of `application.properties` needs to be provided. The name will stay `application.properties` and the location depends on the deployment strategy:
+
+* standalone run-able Spring Boot App using embedded tomcat: `config/application.properties` under the installation directory of the spring boot application.
+* dedicated tomcat (one tomcat per app): `$CATALINA_BASE/lib/config/application.properties`
+* tomcat serving a number of apps (requires expanding the wars): `$CATALINA_BASE/webapps/<app>/WEB-INF/classes/config`
+
+In this `application.properties` the minimum set of properties that are environment specific are defined everything else is inherited from the bundled `src/main/resources/application.properties`. In any case, it needs to be sure that the classloader will find the file.
+
+--
+====
+
+== Naming conventions for configuration properties
+
+As a best practice the configuration properties should follow these naming conventions:
+
+* build the property-name as a path of segments separated by the dot character (`.`)
+* segments should get more specific from left to right
+* a property-name should either be a leaf value or a tree node (prefix of other property-names) but never both! So never have something like `foo.bar=value` and `foo.bar.child=value2`.
+* start with a segment namespace unique to the context or application
+* a good example would be `«myapp».billing.service.email.sender` for the sender address of billing service emails send by `«myapp»`.
+
+== Security
+
+Storing credentials as plain text in configuration files is not an option.
+
+[WARNING]
+====
+
+Plain text credentials or private keys should never be stored or written down, except in dedicated secret stores.
+
+Never commit any plain text credentials in the source code management systems.
+Those systems are designed to never forget anything! In case any secrets were stored in scm the history needs to be cleaned to completely remove it from scm.
+
+====
+
+=== Encryption
+Encryption partly solves this problem. 
+The plain text credentials are encrypted using a strong algorithm and masterpassword. 
+The encrypted password is useless for anybody not knowing the masterpassword.
+
+The masterpassword needs to be provided to the system in a secure way.
+Providing the password is the challenge in this scenario. 
+How and if the password can be provided securely depends highly on the environment.
+
+For encryption jasypt can be used.
+
+[tabs]
+====
+Spring::
++
+--
+Use the Spring Boot Jasypt starter.
+The github repository delivers a god documentation: 
+https://github.com/ulisesbocchio/jasypt-spring-boot 
+
+The default encryption options and the algorithm `PBEWITHHMACSHA512ANDAES_256` are considered secure enough.
+--
+Quarkus::
++
+--
+For Quarkus there's currently no known ready to use library.
+https://stackoverflow.com/questions/67159572/how-to-encrypt-and-decrypt-using-jasypt-in-quarkus-for-database-password
+--
+====
+
+=== Vault
+
+The most secure way of providing secrets to the application is using a dedicate secret store.
+This could be for example link:https://www.vaultproject.io/[HashiCorp Vault]
+
+
+[tabs]
+====
+Spring::
++
+--
+Spring provides an integration with HashiCorp Vault. https://spring.io/projects/spring-vault
+--
+Quarkus::
++
+--
+See the official Quarkus guide for instruction on using HashiCorp Vault https://quarkiverse.github.io/quarkiverse-docs/quarkus-vault/dev/index.html
+--
+====

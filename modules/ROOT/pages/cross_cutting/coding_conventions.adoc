@@ -1,0 +1,163 @@
+= Coding Conventions
+
+* Follow  http://www.oracle.com/technetwork/java/namingconventions-139351.html[Oracle Naming Conventions]
+* Follow the https://google.github.io/styleguide/javaguide.html[Google Java Style].
+* Establish static code analysis using http://www.sonarqube.org/[SonarQube] and related tools such as http://checkstyle.sourceforge.net/[Checkstyle] to verify it. (Configuration files are broadly available)
+
+== Naming
+
+* Use short but speaking names.
+* Use Latin alphanumeric ASCII characters and common technical separator (e.g. underscore).
+* For package segments and type names prefer singular forms. Only use plural forms when there is no singular or it is really semantically required.
+* Names of classes, interfaces, enums or annotations should be unique within your project unless intentionally desired.
+* Avoid artificial naming constructs such as prefixes (`I*`) or suffixes (`*IF`) for interfaces.
+* Use CamelCase even for abbreviations (`XmlUtil` instead of [line-through]`XMLUtil`).
+* Names of Generics should be easy to understand. 
+** Follow the common rule `E=Element`, `T=Type`, `K=Key`, `V=Value`. 
+** Use longer names for more specific cases such as `ID`, `DTO` or `ENTITY`. 
+** Use capitalized naming helps to distinguish a generic type from a regular class.
+
+== Code-Documentation
+
+* APIs are properly documented with JavaDoc.
+* In Javadoc express information not already available in the signature.
+* `{@link}` tags in JavaDoc make it more expressive.
+* Describe how to use the type or method and not the implementation.
+* Implementation details should be documented inline in complex cases.
+* Use `@Override` instead of `{@inheritDoc}`. Since Java 1.5 `@Override` annotation inherits `{@inheritDoc}`.
+
+== Prefer general API
+
+* Do not bind your code to implementations such as `Vector` or `ArrayList` instead of `List`.
+* Use `Collection` instead of `List` or `Set` where the difference does not matter.
+* Consider `Collection<? extends Foo>` when `Foo` is an interface or super-class.
+
+== Catching and handling Exceptions
+
+When catching exceptions always ensure the following:
+
+* Never call `printStackTrace()` method on an exception.
+* Either log or wrap and re-throw the entire catched exception. Do not do both.
+** When wrapping and re-throwing an exception ensure that the catched exception is passed as cause.
+** When logging an exception ensure that the entire exception is passed as argument to the logger. (See the throwable argument in link:https://logback.qos.ch/apidocs/ch/qos/logback/classic/Logger.html[logback]).
+
+== Closing Resources
+
+Resources such as streams or transactions need to be handled properly:
+
+* Do not deal with such resources manually where possible. (E.g. @Transactional over manual transaction handling where possible).
+* Use link:https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html[`try-with-resources`] statement.
+
+== Encoding
+
+* Whenever possible prefer unicode (UTF-8 or better) as encoding. 
+* Do not cast from `byte` to `char`.
+* Always explicitly use an according western locale (e.g. `toLowerCase(Locale.US)`). 
+See https://stackoverflow.com/questions/11063102/using-locales-with-javas-tolowercase-and-touppercase#:~:text=In%20Java%2C%20String.,obey%20a%20certain%20character%20set[the following discussion on stackoverflow].
+* Write your code independent from the default encoding (system property `file.encoding`).
+** Always provide an encoding when you create a `String` from `byte[]`: `new String(bytes, encoding)`.
+** Always provide an encoding when you create a `Reader` or `Writer` : `new InputStreamReader(inStream, encoding)`.
+
+== Prefer primitive boolean
+
+* Avoid using the object type `Boolean`.
+
+[source,java]
+----
+// bad
+public Boolean isEmpty {
+  return size() == 0;
+}
+
+// fine
+public boolean isEmpty {
+  return size() == 0;
+}
+----
+
+== Be aware of the scopes of CDI classes
+
+* link:https://docs.oracle.com/javaee/6/tutorial/doc/giwhl.html[Context and Dependency Injection (CDI)] classes do have a scope that defines their reuse.
+* Do not store state in CDI classes except for documented reasons
+
+For further references on the scopes in spring and quarkus see:
+
+* https://www.baeldung.com/spring-bean-scopes
+* https://quarkus.io/guides/cdi-reference#supported_features
+
+== BLOBs
+
+Avoid using `byte[]` for BLOBs as this will load them entirely into your memory. 
+This will cause performance issues or out of memory errors. 
+Instead, use streams when dealing with BLOBs. 
+
+See also xref:./../../persistence/jpa.adoc#blobs[the specific article about storing BLOBs]
+
+== Optionals
+
+* Do not use `Optional` for every parameter or result to express that it may be `null`. 
+* Use `@Nullable`or `@NotNull` to clarify the expectation. 
+
+Further good practices on optionals can be found here:
+
+* https://www.baeldung.com/java-optional
+* https://www.baeldung.com/java-optional-return
+
+== Lambdas and Streams
+
+Basic good practices are described here: https://www.baeldung.com/java-8-lambda-expressions-tips
+
+Additionally, the following rules should be applied:
+
+=== Do not use parallel Streams
+
+* Using `parallelStream()` in general code that will run on server side can have unexpected side effects.
+* Performance improvements should be monitored and not blindly adapted.
+
+=== Do not perform operations on a sub-stream inside a lambda
+
+[source,java]
+----
+set.stream().flatMap(x -> x.getChildren().stream().filter(this::isSpecial)).collect(Collectors.toList()); // bad
+set.stream().flatMap(x -> x.getChildren().stream()).filter(this::isSpecial).collect(Collectors.toList()); // fine
+----
+
+=== Only use `collect` at the end of the stream.
+
+[source,java]
+----
+set.stream().collect(Collectors.toList()).forEach(...) // bad
+set.stream().peek(...).collect(Collectors.toList()) // fine
+----
+
+=== Avoid if/else inside foreach method
+
+* Use Filter method & comprehension instead.
+
+== Code Tasks
+Code spots that need some rework can be marked with the following tasks tags. 
+
+=== TODO
+Used to mark a piece of code that is not yet complete.
+A TODO tag is added by the author of the code who is also responsible for completing this task.
+
+[source,java]
+ // TODO «author» «description»
+
+=== FIXME
+
+A FIXME tag is added by the author of the code or someone who found a bug he can not fix right now. 
+The «author» who added the FIXME is also responsible for completing this task. 
+
+[source,java]
+ // FIXME «author» «description»
+
+=== REVIEW
+
+IMPORTANT: Don't use REVIEW tags in modern applications! Todays source code management systems usually have a review support.
+
+A REVIEW tag is added by a reviewer during a code review. 
+The original author of the code is responsible to resolve the REVIEW tag and the reviewer assigns this task to him. 
+
+[source,java]
+ // REVIEW «responsible» («reviewer») «description»

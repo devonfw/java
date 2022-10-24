@@ -1,0 +1,69 @@
+:imagesdir: ../images
+
+= Logging
+
+To monitor and understand what the running application is doing it is essential to write logs. 
+This article gives advice on how to do proper logging in an application.
+
+== General conventions
+
+=== SLF4J
+
+* Use link:https://www.slf4j.org/manual.html[SLF4J], because it has become a de facto standard in Java
+** Use the 'typical usage pattern' and not the fluent API.
+** Consider Logback as implementation in Spring
+** Consider JBoss Log Manager and the JBoss Logging facade as implementation in Quarkus
+
+=== Naming conventions
+
+* The private static final member storing the logger instance should be called `log`.
+
+// == Logger configuration
+
+=== Use a separate configuration per environment
+
+When the configuration of the logger is environment specific the configuration should be stored in a separate file.
+
+
+=== Use standard log levels
+
+To make it possible to filter the log messages, there are different log levels to express the nature of the logged message. There is a common understanding how this log levels should be used and which messages should be logged with which log level: 
+
+.Log levels
+[options="header"]
+|=======================
+| *Log-level* | *logger function* | *Description* | *Impact* 
+| FATAL | link:https://www.slf4j.org/apidocs/org/slf4j/Logger.html#error-org.slf4j.Marker-java.lang.String-java.lang.Object...-[error] with a link:https://www.slf4j.org/faq.html#fatal[marker] | Only used for fatal errors that prevent the application to work at all (e.g. startup fails or shutdown/restart required) | Operator has to react immediately
+| ERROR | link:https://www.slf4j.org/apidocs/org/slf4j/Logger.html#error-java.lang.String-java.lang.Object...-[error] | An abnormal error indicating that the processing failed due to technical problems. | Operator should check for known issue and otherwise inform development
+| WARNING | link:https://www.slf4j.org/apidocs/org/slf4j/Logger.html#warn-java.lang.String-java.lang.Object...-[warn] | A situation where something worked not as expected. E.g. a business exception or user validation failure occurred. | No direct reaction required. Used for problem analysis.
+| INFO | link:https://www.slf4j.org/apidocs/org/slf4j/Logger.html#info-java.lang.String-java.lang.Object...-[info] | Important information such as context, duration, success/failure of request or process | No direct reaction required. Used for analysis.
+| DEBUG | link:https://www.slf4j.org/apidocs/org/slf4j/Logger.html#debug-java.lang.String-java.lang.Object...-[debug] | Development information that provides additional context for debugging problems. | No direct reaction required. Used for analysis.
+| TRACE | link:https://www.slf4j.org/apidocs/org/slf4j/Logger.html#trace-java.lang.String-java.lang.Object...-[trace] | Like DEBUG but exhaustive information and for code that is run very frequently. Will typically cause large log-files. | No direct reaction required. Used for problem analysis.
+|=======================
+
+Exceptions (with their stack trace) should only be logged on `FATAL` or `ERROR` level. For business exceptions typically a `WARNING` including the message of the exception is sufficient.
+
+=== Configure the active log levels per environment
+
+When the application is executed on different environments it is a best practice to activate certain log levels depending on the type of the environment:
+
+.Log levels in different environments
+[options="header"]
+|=======================
+| *Log-level* | *Active Environments*
+| FATAL | all
+| ERROR | all
+| WARNING | all
+| INFO | all
+| DEBUG | development and testing
+| TRACE | none (turned off by default)
+|=======================
+
+=== Use rolling log files
+
+To prevent log file from getting to big it is a best practice to use rolling log files. This means that following a list of rules the logger will start logging to a new file. The frequency of the rolling depends on the amount of log message and on the file size the file system and the applications, used to view the logs, can handle.
+
+== References
+
+* link:http://www.slf4j.org/[SLF4J]
+* link:https://quarkus.io/guides/logging[Quarkus logging guide]

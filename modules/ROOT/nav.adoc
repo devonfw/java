@@ -1,0 +1,32 @@
+* xref:getting_started/getting_started.adoc[]
+** xref:getting_started/create_rest_service.adoc[]
+* xref:architecture/architecture.adoc[]
+** xref:architecture/layered_architecture.adoc[]
+
+* Integration
+** xref:integration/rest-service.adoc[]
+*** xref:integration/rest_exception_handling.adoc[]
+*** xref:integration/rest_service_json.adoc[]
+*** xref:integration/rest_openapi.adoc[]
+
+* Persistence
+** Relational Databases
+*** xref:persistence/jpa.adoc[]
+*** xref:persistence/transactional.adoc[]
+
+* Cross cutting
+** xref:cross_cutting/coding_conventions.adoc[]
+** xref:cross_cutting/configuration.adoc[]
+** xref:cross_cutting/dependency-injection.adoc[]
+** xref:cross_cutting/exceptions.adoc[]
+** xref:cross_cutting/i18n.adoc[]
+** xref:cross_cutting/logging.adoc[]
+** Security
+*** xref:cross_cutting/security/authentication.adoc[]
+*** xref:cross_cutting/security/authorization.adoc[]
+*** xref:cross_cutting/security/cors.adoc[]
+*** xref:cross_cutting/security/csrf.adoc[]
+** xref:cross_cutting/tracing.adoc[]
+
+* Examples
+** xref:examples/my-thai-star.adoc[]
