@@ -81,7 +81,7 @@ If there are multiple response types and xml should be used as default, add the 
 
 == References
 
-- link:https://github.capgemini.com/CG-Europe-ABL/devonfw/tree/master/examples/service/openapidemo[Example Project]
+- link:https://github.com/devonfw-sample/java-samples/tree/master/examples/service/rest-openapi[Example Project]
 - https://oai.github.io/Documentation/best-practices.html
 - https://openapi-generator.tech/docs/generators
 
