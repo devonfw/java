@@ -1,0 +1,87 @@
+= Open Api Generator
+
+OpenApi is a specification to describe restful service endpoints in a human and computer readable format.
+
+With the help of a generator, server and client code can be created from the Api definition.
+This will help to build projects more Api driven, faster, consistent and in a design first approach.
+
+- For the client-side, it's easier to send requests to the Api by using a generated Api client
+- For the server-side, stubs are generated as interfaces to implement
+
+
+== Generator to use
+
+There are different types of generators, it is suggested to use the link:https://openapi-generator.tech/[OpenApi Generator].
+
+It's sugessted to use the link:https://openapi-generator.tech/docs/plugins/[maven/gradle plugin version] for the client and server. For the client, there is also a link:https://openapi-generator.tech/docs/installation[cli tool].
+
+== Setup
+
+Create an link:https://swagger.io/specification/[openapi.yaml] file from the Api and move it into the `main/resources` folder.
+
+link:https://openapi-generator.tech/docs/plugins[Configure] the openapi generator maven plugin inside the `pom.xml`.
+
+
+=== Use generated as package name
+
+- The code generated for the `server` should be located under <root-package>.generated.api 
+
+- The code generated for the `client` should be located under <root-package>.generated.client 
+
+=== Before generating, choose the underlying httpClient library
+When generating a client, the client encapsulates the HttpClient library, making it easy to exchange. The library can be set by changing the `library` option inside the plugin configuration.
+
+Some minor changes need to be done when changing the library.
+For link:https://docs.oracle.com/en/java/javase/12/docs/api/java.net.http/java/net/http/HttpClient.html[native java library], the method for changing the server path is `updateBaseUri`.
+For other libraries, it is `setBasePath`. When switching, this needs to be changed. See the example for the details.
+
+Dependent on the library, error handling can be different.
+
+== For client-side
+
+A detailed guide on how to use the generated client code can be found link:https://www.baeldung.com/spring-boot-rest-client-swagger-codegen#2-expose-api-classes-as-spring-beans[here]
+
+=== Configure The APIClient and Specific clients in a Configuration Bean
+
+The ApiClient should be configured in a Configuration Bean named {[ApiName]}Config
+
+It is possible that the server url is already set inside the openapi.yaml file.
+You can set/overwrite the server path of the Api inside the application.properties using the configuration bean. 
+
+For different http libraries, the configuration bean has to be changed. 
+
+[tabs]
+=====
+Spring::
++
+--
+For every API resource model, create a link:https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-java-bean-annotation[bean] to access a [<ResourceName>]Api Object.
+--
+
+Quarkus::
++
+--
+For every API resource model, create a link:https://quarkus.io/guides/cdi-reference#simplified-producer-method-declaration[producer] to access a [<ResourceName>]Api Object.
+--
+=====
+
+
+
+== For server-side
+
+A detailed guide on how to use the generated server code can be found link:https://www.baeldung.com/java-openapi-generator-server/[here]
+
+The content type for the response is defined inside the openapi file.
+If there are multiple response types and xml should be used as default, add the following in the plugin configuration.
+----
+<singleContentTypes>false</singleContentTypes>
+<withXml>true</withXml>
+----
+
+
+== References
+
+- link:https://github.com/devonfw-sample/java-samples/tree/master/examples/service/rest-openapi[Example Project]
+- https://oai.github.io/Documentation/best-practices.html
+- https://openapi-generator.tech/docs/generators
+

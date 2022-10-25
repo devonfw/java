@@ -1,0 +1,29 @@
+= Transaction
+https://en.wikipedia.org/wiki/Atomicity_(database_systems)
+
+== Use declarative transaction handling
+[tabs] 
+==== 
+Spring:: 
++ 
+-- 
+See the link:https://docs.spring.io/spring-framework/docs/current/reference/html/data-access.html#transaction[spring reference guide] for a detailed explanation of springs transaction management.
+
+* Use the link:https://docs.spring.io/spring-framework/docs/current/reference/html/data-access.html#transaction-declarative[declarative] way with link:https://docs.spring.io/spring-framework/docs/current/reference/html/data-access.html#transaction-declarative-annotations[@Transactional] wherever possible.
+* Only in reasonable cases manual programmatic transaction handling should be used.
+--
+
+Quarkus::
++
+--
+See the link:https://quarkus.io/guides/transaction[transaction guide] of quarkus for a detailed explanation.
+
+* Use the link:https://quarkus.io/guides/transaction#declarative-approach[declarative] way with @Transactional wherever possible.
+* Only in reasonable cases manual programmatic transaction handling should be used.
+--
+====
+
+== Handling constraint violations
+Because database constraints are checked by the database when the transaction gets committed, constraint violations will be thrown outside the business code.
+In case constraint violations have to be handled manually, it should be done in code outside the logic that is annotated with `@Transactional`. 
+This may be done in a service operation by catching a `ConstraintViolationException` (`org.hibernate.exception.ConstraintViolationException` for hibernate).

@@ -1,0 +1,11 @@
+:imagesdir: ../images
+= Exceptions
+
+== Business exceptions
+
+=== Use a common base class
+
+* All business exceptions should inherit a common abstract base class so they can be distinguished from technical exceptions.
+** Should be inheriting `RuntimeException`
+** Should store the cause `Exception`
+** Should contain a reason enum. The enum is project individual and contains values like `Conflict`, `NotFound` and `IncorrectInput`. This enum can later be used to decide how to inform the user about the problem e.g. via HTTP status codes when building REST apis.

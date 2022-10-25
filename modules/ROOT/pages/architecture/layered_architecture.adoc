@@ -1,0 +1,296 @@
+:imagesdir: ../images
+= Layered Architecture
+
+The layered architecture is a technical architecture view, that divides the applications business components into technical layers based on the http://en.wikipedia.org/wiki/Multilayered_architecture[multilayered architecture].  
+
+== Introduction and Goals
+This article porposes a concrete guideline on implementing a layered architecture. This includes the definition of layers, a rule set on dependencies between those layers and a concrete proposal for folder and package names.
+
+== Context and scope
+
+* Focus on the technical architecture. 
+No proposals on business splits will be made.
+* The layered architecture can be used in services of a microservice architecture or in monoliths. The focus here is on a single deployable artifact independent of its size.
+The layered architecture is independent of the higher architecture. 
+* Only back-end services are considered here.
+
+== Solution Strategy
+
+This chapter explains the layered architecture, the single layers and rules to follow.
+
+=== Reference Architecture
+
+[[img-t-layered-architecture]]
+.Layered Architecture Reference
+image::t-architecture_layered_architecture.drawio.svg["devonfw layered architecture blueprint",scaledwidth="80%",align="center"]
+
+[[back-end_service]]
+==== Back-end service
+
+The xref:img-t-layered-architecture[Layered Architecture Reference] focuses on the _back-end service A_ that consists of two business components. 
+The components are divided into following layers:
+
+Service layer:: Exposes functionality of the back-end to the client or other consumers.
+
+Batch layer:: Exposes functionality to be used in batch-processes (e.g. mass imports).
+
+Logic layer:: Contains the business logic.
+
+Domain layer:: The domain layer manages the domain entities. This usually includes their persistence.
+
+==== Front-end service
+
+The client uses the service endpoints of the back-end service. 
+It is divided into the same business components as the backend with only the _client layer_.
+
+[IMPORTANT]
+====
+Front-end services are not in focus of devon4j. 
+The client layer is added for completeness.
+devonfw supports clients based on single page applications with Angular with devon4ts.
+====
+
+==== Dependencies
+
+The dependencies and call directions follow a few strict rules.
+
+===== Dependencies inside a component
+
+In the xref:img-t-layered-architecture[layered  architecture reference] those dependencies are displayed by a blue connector. 
+Inside the same component (e.g. _Component A1_) the following rules adhere:
+
+* Each layer can only depend on resources from the same layer or from the layer below. 
+_A1 UseCases_ in the logic layer might depend on the interfaces from the domain layer or have a dependency to another use-case from the same component in the logic layer.
+* A layer can [.underline]#never# depend on a layer above. 
+The domain layer should never depend on the logic layer.
+* Layers should not be skipped. 
+The service layer should not depend on the domain layer directly.
+
+===== Dependencies between components
+
+In the xref:img-t-layered-architecture[layered  architecture reference] those dependencies are displayed by a orange connector. 
+Inside the same service, but across components (e.g. _Component A1_ calls _Component A2_)the following rules adhere:
+
+* The business architecture defines which components can depend on each other.
+It highly depends on the business rules if two components are allowed to depend on each other
+For the next rules it is assumed that _Component A1_ is allowed to call _Component A2_.
+* Only the logic layer can have dependencies on other use cases from other components, because it is a business dependency.
+The logic layer of _Component A1_ depends on the logic layer of _Component A2_.
+* The Service layer of _Component A1_ should [.underline]#not# have a dependency to any other layer in _Component A2_
+* The Logic Layer of _Component A1_ should [.underline]#not# have a dependency to the domain or the service layer in _Component A2_ 
+* The Domain Layer of _Component A1_ should [.underline]#not# have a dependency to any other layer in _Component A2_ 
+
+===== Dependencies to external service
+
+In the xref:img-t-layered-architecture[layered  architecture reference] those dependencies are displayed by a red connector. 
+Usually services do not work alone, but need further functionality that is made available via interfaces.
+Dependencies between external services are the most critical ones, because such services are usually not under the teams control.
+Therefore only a few, but very precise and strict rules are defined:
+
+* The business architecture defines which service depend on each other.
+* External services can only depend on the exposed interfaces of the service layer.
+Other layer should [.underline]#never# expose their functionality to external services.
+* The only layer that can depend on external services is the logic layer.
+
+== Constraints and alternatives
+
+For services with a very limited number of use cases and exposed endpoints, that are also planned to stay small, the three layers might be an overhead. In such cases it might be an option to combine the logic and service layer. Logic and domain layers should never be combined.
+
+For large modulith systems further rules and stricter divisions might be necessary. A possible way to handle this is to keep API and Implementation even stricter separated.
+
+== Concrete Implementation
+
+=== Folder structure
+
+The folder structure should be aligned with the link:https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html[maven standard directory layout].
+
+All sources belonging to the project should be located under `src/main` in corresponding subfolders. 
+Obvious sources are java source code and static resources that are used.
+Other sources like Dockerfiles, helm charts, kubernetes configurations, scripts, etc. should be located in `src/main` as well.  
+
+The following examples shows a potential folder structure, that might be extended based on the need. 
+
+NOTE: Folders should only be created and used if they have content.
+
+////
+We tried out other possibilities to display a hierarchical tree. 
+- plantuml legend
+- Mermaid / plantuml mindmaps
+None of the above examples was able to render a better view that was more readable.
+
+- A promising tree block makro https://github.com/asciidoctor/asciidoctor-extensions-lab/tree/main/lib/tree-block-macro is still in beta and therefore currently not in scope. 
+////
+[subs=+macros]
+----
+├──/src
+|  ├──/main
+|  |  ├──/docker
+|  |  ├──/helm
+|  |  ├──/java
+|  |  └──/resources
+|  └──/test
+|     ├──/java
+|     └──/resources
+└──/pom.xml
+----
+
+=== Package structure
+
+The package structure inside `src/main/java` should represent the (business) components and align with the layered architecture.
+ 
+[source]
+«root».«component».«layer»[.«detail»]
+
+.Segments of package schema
+|===
+|*Segment*      | *Description* | *Example*
+
+|«root»
+|The basic Java package namespace of the application. 
+According to the  link:https://docs.oracle.com/javase/specs/jls/se6/html/packages.html#7.7[Java package name rules] the root should consist of `«group».«artifact»` where `«group»` is the organization owning the code.
+The `«artifact»` is typically the technical name of the application.
+|`com.mycustomer.myapplication`
+
+| «component» 
+| The (business) component the code belongs to. It is defined by the business architecture and uses terms from the business domain. Use the implicit component `general` for code not belonging to a specific component (foundation code).
+| `ordermanagement`
+
+| «layer» |
+The technical layers the code belongs to. The layers are described below.
+| `domain`
+
+| «detail» 
+| Depending on the size of the application it might make sense to further divide the layers.
+The table below gives hints on possible division criteria, but it might make sense to add further detail packages or to leave them out.
+| `repository`
+|===
+
+==== The layers as packages
+
+The layers and their functionality are described in xref:back-end_service[the back-end service reference].
+The following table explains the layers and their possible detail packages:
+
+[options="header"]
+|===
+| *«layer»* | *«detail»*
+
+|`service`
+|In case multiple protocols are used in the service layer, it might make sense to create a «detail» package for each protocol. 
+Typical protocols are REST or https://grpc.io/[gRPC]. 
+For versioning of the APIs further sub-packages can be created.
+
+|`logic`
+|No details expected
+
+|`domain`
+|Use `repository` for repository and `dao` for DAOs. 
+Entities belong into `model`.
+
+|`common`
+|If common gets that big that further separation is necessary detail packages can be created. 
+A high amount of layer unrelated implementations is often considered an anti pattern.
+Check if common functionality might fit into other layers.
+|===
+
+==== Reference structure
+
+[subs=+macros]
+----
+«root»
+├──.«component»
+|  ├──.domain
+|  |  ├──.repository
+|  |  |  ├──.«BusinessObject»Repository
+|  |  |  └──.«BusinessObject»Fragment
+|  |  ├──.dao [alternative to repo]
+|  |  |  └──.«BusinessObject»Dao
+|  |  └──.model
+|  |     └──.«BusinessObject»Entity
+|  ├──.logic
+|  |  ├──«BusinessObject»Validator
+|  |  └──«BusinessObject»EventsEmitter
+|  |  └──.Uc«Operation»«BusinessObject»
+|  └──.service
+|     └──.rest
+|        └──.v1
+|           ├──.«Component»RestService
+|           ├──.mapper
+|           |  └──.«BusinessObject»Mapper
+|           └──.model
+|              └──.«BusinessObject»Dto
+└──.general
+   └──.domain
+      └──.model
+         └──.ApplicationPersistenceEntity
+----
+
+==== Example
+
+[subs=+macros]
+----
+com.devonfw.application.mts
+├──.bookingmanagement
+|  ├──.domain
+|  |  ├──.repository
+|  |  |  ├──.BookingRepository.java
+|  |  |  ├──.InvitedGuestRepository.java
+|  |  |  └──.TableRepository.java
+|  |  └──.model
+|  |     ├──.BookingEntity.java
+|  |     ├──.InvitedGuestEntity.java
+|  |     └──.TableEntity.java
+|  ├──.logic
+|  |  └──BookingManagement.java
+|  └──.service
+|     ├──.mapper
+|     |  ├──.BookingMapper.java
+|     |  ├──.InvitedGuestMapper.java
+|     |  └──.TableMapper.java
+|     ├──.model
+|     |  ├──.BookingCto.java
+|     |  ├──.InvitedGuestCto.java
+|     |  └──.TableCto.java
+|     └──.BookingManagementRestService.java
+├──.dishmanagement
+|  ├──.domain
+|  |  ├──.repository
+|  |  |  ├──.CategoryRepository.java
+|  |  |  ├──.DishRepository.java
+|  |  |  └──.IngredientRepository.java
+|  |  └──.model
+|  |     ├──.CategoryEntity.java
+|  |     ├──.DishEntity.java
+|  |     └──.IngredientEntity.java
+|  ├──.logic
+|  |  └──DishManagement.java
+|  └──.service
+|     └──.rest
+|        └──.v1
+|           ├──.mapper
+|           |  ├──.CategoryMapper.java
+|           |  ├──.DishMapper.java
+|           |  └──.IngredientMapper.java
+|           ├──.model
+|           |  ├──.CategoryTo.java
+|           |  ├──.DishTo.java
+|           |  └──.IngredientTo.java
+|           └──.DishManagementService.java
+├──. ...
+└──.general
+   ├──.common
+   |  └──.base
+   |     ├──.JWTAuthenticationFilter.java
+   |     ├──.QrCodeService.java
+   |     └──.ValidationService.java
+   ├──.domain
+   |  ├──.repository
+   |  |  └──.BinaryObjectRepository.java
+   |  └──.model
+   |     ├──.BinaryObjectEntity.java
+   |     └──.ApplicationPersistenceEntity.java
+   └──.service
+      └──.rest
+         └──.v1
+            └──.ApplicationAccessDeniedService.java
+----
+

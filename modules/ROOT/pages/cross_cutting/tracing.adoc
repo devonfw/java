@@ -1,0 +1,10 @@
+:imagesdir: ../images
+
+= Tracing
+
+== Correlation ID
+
+Most of the time it is handy to find all the log messages created as a result of a user action, service request or message. To achieve this it is best practice to a a correlation ID to every message. A correlation ID is a number or string that is the same for all log messages of a user action, service request or message but different for different user actions, service requests or messages. With that it is possible to filter the log messages. This uniqueness can be achieved by using a `UUID` as correlation ID.
+
+The correlation ID is generated when a new user action, service request or message occurs. In distributed systems it is important to pass the correlation ID to called service to be able to find the log messages for the complete system.
+For HTTP calls this is usually done in the header field `X-Correlation-Id`. For messaging systems like queues or service busses there is usually a special file in the message header to store the correlation ID.

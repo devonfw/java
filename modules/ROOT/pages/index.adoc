@@ -1,0 +1,7 @@
+:imagesdir: ../images
+
+= Welcome to devon4j
+
+devon4j is a collection of good practices and experiences when developing enterprise applications at scale.
+By standardizing the development process and the usage of established frameworks and libraries devon4j aims to accelerate the ramp-up and onboarding phase.
+At the same time using the existing experiences from experts reduces the risk to do known failures whilst increasing overall code quality.

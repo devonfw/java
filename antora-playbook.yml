@@ -1,0 +1,24 @@
+site:
+  title: devonfw
+  start_page: java::index.adoc
+  url: https://devonfw.com
+content:
+  sources: 
+  - url: .
+    branches: HEAD
+    start_path: .
+ui: 
+  bundle:
+    url: ./ui-bundle.zip
+    snapshot: true
+urls: 
+  latest_version_segment: current
+antora:
+  extensions:
+  - require: '@antora/lunr-extension'
+    languages: [en]
+asciidoc:
+  extensions:
+  - "./extensions/tabs.js" 
+  - "asciidoctor-external-callout"
+  - asciidoctor-kroki

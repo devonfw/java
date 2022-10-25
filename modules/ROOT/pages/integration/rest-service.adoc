@@ -1,0 +1,224 @@
+= REST
+
+REST (REpresentational State Transfer) is an inter-operable protocol for services that is more lightweight than SOAP. 
+REST and RESTful often implies very strict and specific rules and conventions.
+
+== HTTP methods
+
+.Usage of HTTP methods
+[options="header",cols="~,~,~"]
+|====
+|HTTP Method|RESTful Meaning|Recommendations
+
+|`GET`        
+a|
+- Read single element.
+- Search on an entity (with parametrized url) 
+a| 
+- Read a single element.
+
+|`PUT`       
+a|
+- Replace entity data.         
+- Replace entire collection (typically not supported) 
+a| 
+- Not recommended
+
+|`POST`       
+a|
+- Create a new element in the collection  
+a| 
+- Create or update an element in the collection.
+- Search on an entity (parametrized post body)
+- Bulk deletion.
+
+|`DELETE`     
+a|
+- Delete an entity.
+- Delete an entire collection (typically not supported) 
+a|
+- Delete an entity.
+- Delete an entire collection (typically not supported)|
+|====
+
+=== Rationals behind the differences to a RESTful API
+
+The table above shows some differences between the RESTful meaning of the HTTP methods and the recommended way of implementation, that results from a lot of lessons learned in various projects.
+
+==== GET
+
+* GET-requests do have some limitations. 
+* URL's are limited in length which makes them inappropriate for an unknown number of search parameters. 
+* Server's might log the URL's which could lead to logging of sensitive data, when a lot of parameters are used.
+
+Recommendation on search implementation: 
+
+* Keep all searches as POST-requests 
+* Put the search parameter in the request-body.
+* See also https://stackoverflow.com/a/18933902 as explanation
+
+This keeps the API consistent for all request filtering for certain entities.
+
+==== PUT
+The verb `PUT` does not directly shout update, which can lead to discussions around the usage of `PUT` and regular confusions. 
+As a pragmatic solution to this reoccurring problem the recommendation is to not use PUT at all.
+The difference between creating of an entity and updating of an entity does not need an own verb. 
+Instead the existence of an entity identifier in the POST-request body identifies an UPDATE.
+Whereas the absence of the identifier in the in the body marks it's creation. 
+
+==== POST
+In addition to the already mentioned tasks, the POST-request is responsible for BULK deletions. 
+DELETE should not have a body and the URLs are limited in their length. 
+Therefore, there's a limit in number of entities that can be bulk deleted. 
+To stay consistent across bulk deletions independent of their size, it is recommended to use POST-requests and send the entities marked for bulk deletion in the body.
+
+== URLs
+
+For URLs following rules are defined:
+* Only lower case letters
+* Hyphens separate words
+
+A basic URL should be build up like this. This basic part will be referenced as <url-prefix> in following examples:
+`\https://<host>:<port>/[<app>]/[services]/[<service protocol>]/[<business component>]/[<version>]/`
+
+[%autowidth.stretch]
+|===
+|URL-prefix Placeholder | Description
+
+| <app> 
+| The name of the application.
+In case the host name already identifies the name of the application, it is redundant to add the name of the app to the URL. 
+
+| services 
+| `services` can be written into the path to differentiate the path to APIs from e.g. static content.
+In case no differentiation is needed and will probably never be, it can be left out.
+
+|<service protocol>
+| In case multiple protocols might be supported, it makes sense to distinguish them e.g. `rest` or `grpc`.
+
+|<business component>
+| In case the service is divided into multiple business components, it's beneficial to put the business component into the URL.
+In case of microservices for example the buisness component would be often redundant to the app name.
+
+|<version>
+| In case versioning of the API is planned, the version should be made available in the URL from the very first version on.
+|===
+
+For operations in REST the following types of URLs are distinguished:
+
+Collection URL::
+Build from the rest service URL by appending the name of a collection, which is typically the name of an entity. 
+Example: `<url-prefix>/myentity`
+
+Element URL:: 
+Identifies a single entity within the collection. 
+Build from a collection URL by appending the element ID. 
+Example: `<url-prefix>/myentity/42`
+
+Business Operation URLs::
+The business operations (processing, calculation, advanced search, etc.) is appended to the collection URL.
+Business operations should always be used in combination with POST.
+Example: `<url-prefix>/myentity/search`
+
+NOTE: Always use singular forms and avoid confusions (except for the rare cases where no singular exists).
+
+NOTE: An entity that should be provided with a different structure should become an own collection instead of appending the details to the entity URL.
+`<url-prefix>/*myentity-with-details*/42` instead of `<url-prefix>/*myentity/42/with-details*`.
+
+A complete example could look like this: 
+`\https://mydomain.de:9080/my-thay-star/services/rest/ordermanagement/v1/order/42`
+
+== Status Codes
+
+* A detailed list and explanation of status codes can be found here: https://www.rfc-editor.org/rfc/rfc9110.html#name-status-codes.
+* A condensed list is available here: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+
+== REST Media Types
+
+* The payload of a REST service can be in any format as REST by itself does not specify this. 
+* The most established ones in practice are XML (application/xml) and JSON (application/json).
+* The recommendation is JSON, if not defined by API consumers. 
+
+IMPORTANT: Do *not* mix formats in the same service. If this should be necessary document the reason.
+
+== Concrete examples
+
+=== Get a single resource
+
+* *HTTP Method*: `GET`
+* *URL example*: `\https://mydomain.de:9080/my-thay-star/services/rest/ordermanagement/v1/order/42`
+
+For loading of a single resource, embed the `identifier` (e.g. `42`) of the resource in the URL.
+
+The response contains the resource in JSON format, using a JSON object at the top-level.
+
+=== Get a collection of resources
+
+* *HTTP Method*: `GET`
+* *URL example*: `\https://mydomain.de:9080/my-thay-star/services/rest/ordermanagement/v1/order`
+
+The response contains all entities of the collection in JSON format, using a JSON object at the top-level, and the actual collection underneath a `result` key.
+
+=== Create or Update a resource
+
+* *HTTP Method*: `POST`
+* *URL example*: `\https://mydomain.de:9080/my-thay-star/services/rest/ordermanagement/v1/order`
+
+The resource will be passed via JSON in the request body. 
+If updating an existing resource, include the resource's `identifier` in the JSON and not in the URL, in order to avoid ambiguity.
+
+If saving was successful, the updated product (e.g. with assigned ID or updated modification counter) is returned.
+
+
+=== Search for a specific resource
+
+* *HTTP Method*: `POST`
+* *URL example*: `\https://mydomain.de:9080/my-thay-star/services/rest/ordermanagement/v1/order/search`
+
+In order to differentiate from an unparameterized load, the _subpath_ `search` is introduced. 
+The parameters are passed via JSON in the request body. 
+
+=== Delete a resource
+
+* *HTTP Method*: `DELETE`
+* *URL example*: `\https://mydomain.de:9080/my-thay-star/services/rest/ordermanagement/v1/order/42`
+
+For deletion of a single resource, embed the `identifier` of the resource in the URL.
+
+== Implementation
+
+[tabs]
+====
+Spring::
++
+--
+In spring the following guides give a good overview on how to use REST in spring boot:
+
+* https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-requestmapping
+* https://www.baeldung.com/rest-with-spring-series
+
+For spring boot the following dependencies are necessary
+
+|===
+| group id | artifact id 
+
+|org.springframework.boot
+|spring-boot-starter-web
+|===
+
+--
+Quarkus::
++
+--
+For Quarkus the https://resteasy.dev/[RESTeasy] implementation is used, as recommended by Quarkus.
+
+|===
+| group id | artifact id 
+
+|io.quarkus
+|quarkus-resteasy-reactive
+|===
+
+See also https://quarkus.io/guides/resteasy-reactive.
+--
+====

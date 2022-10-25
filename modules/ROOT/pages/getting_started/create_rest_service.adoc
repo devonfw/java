@@ -1,0 +1,9 @@
+= Create a REST service
+
+* [ ] Implement a xref:../integration/rest-service.adoc[REST interface]
+// ** devon4j recommends to generate is from a openAPI spec
+* [ ] Establish the xref:../integration/rest_exception_handling.adoc[exception handling]
+* [ ] Enable xref:../cross_cutting/security/authentication.adoc[security features] for the API
+* [ ] Implement the necessary xref:../cross_cutting/tracing.adoc[tracing infrastructure]
+* [ ] Setup the persistence according to the needs. E.g.:
+** xref:../persistence/jpa.adoc[SQL database with JPA]

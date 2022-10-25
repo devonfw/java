@@ -1,0 +1,62 @@
+= Internationalization (I18N)
+
+Read the link:https://docs.oracle.com/javase/8/docs/technotes/guides/intl/index.html[official oracle documentation] 
+or the link:https://www.baeldung.com/java-8-localization[Baeldung article] about internationalization as introduction.
+
+== Library selection
+
+* link:https://docs.oracle.com/javase/8/docs/api/java/util/ResourceBundle.html[Java SEs ResourceBundle] for localizing messages. 
+* link:https://docs.oracle.com/javase/7/docs/api/java/text/MessageFormat.html[Java SEs MessageFormat] for formatting the messages (for example variable replacement) 
+
+=== Formatting
+
+Not only text needs internationalization.
+Also consider:
+
+* Numbers
+* Dates
+* Currency
+
+Check link:https://docs.oracle.com/javase/7/docs/api/java/text/MessageFormat.html[Java SEs MessageFormat] for further links on specialized formatters
+
+=== Further references
+
+* https://docs.oracle.com/javase/8/docs/api/java/util/ResourceBundle.html
+* https://www.baeldung.com/java-localization-messages-formatting
+
+== Localization Properties
+=== Use only property files
+Do not store key value pairs of messages and the corresponding localized message in code.
+Always create a default property and localized properties in the same folder to make it easy to keep them in sync.
+
+=== Always use country locale for the property name.
+Do not use just the language to specify locale properties.
+Instead always use the country in combination with the language.
+This is no big overhead at the beginning and future proof.
+
+[source,java]
+----
+// Don't use just the language (en)
+message_en.properties // LOCALE.EN
+
+// Use the Country with language locale (language: en, country: US)
+messages_en_US.properties // LOCALE.US
+----
+
+== Retrieve locale
+
+=== Use accept-language in http calls
+
+The link:https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language[accept-language] header indicates the natural language and locale of the client.
+This should always result in a link:https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Language[Content-Language] header in the response.
+
+=== Logged in user
+
+If a user is authenticated, this user might have some localization preferences.
+Those settings might be stored in the application itself (e.g. the database) or in the authentication system (e.g. LDAP).
+
+=== Business context
+
+The localization specifics might also result from business specific indicators (e.g. A flag in a message or defined values). 
+Discuss with business responsibles on this topic.
+

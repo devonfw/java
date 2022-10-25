@@ -1,0 +1,188 @@
+= devonfw website
+
+This is the devonfw website including the full documentation of devonfw.
+
+====
+@TODO: -> New issue
+
+* How to contribute
+** We need rules for the website
+** Style guides for the documentation (env config?)
+** Way of writting
+** DoD
+====
+
+== Local development of the website
+
+=== Install dependencies
+
+Before anything else, the dependencies needs to be installed. This is a onetime job, until the package.json changes.
+```
+npm install
+```
+
+=== Building the website
+
+The website is based on link:https://antora.org/[antora].
+The content of the website is written in asciidoc and needs to be converted to a html website.
+Building the website can be done via
+
+```shell
+npm run build
+```
+
+=== Serve the content
+
+To view the content it's easiest to run an http-server listening on the build result of the before mentioned build-command.
+Start the server in a separate window, because it's blocking the terminal.
+
+```shell
+npm run dev:server
+```
+
+This will start a server on port 5000. 
+You can now open the website on http://localhost:5000.
+
+=== Re-build website after changes
+
+As long as the server is running a re-build using the build-command is enough to view the changes in your browser.
+
+=== Stop the server
+
+To stop the server press `<CTRL>+C`.
+
+== Articles
+
+Articles should be written in a passive form not using "we", "you", ...
+
+There're two kinds of articles:
+
+=== Good practice articles
+
+Good practice article propose certain good practices and real project experiences on using a selected technology.
+
+To accomplish this, each article is a lists the individual key points that build the headlines, that explain the good practice and provide links on further readings, where the implementation is explained in detail. This is often the specification or official documentation page.
+
+Keep the description as small as possible and use bullet points whenever feasible.
+
+.Example from JPA article
+====
+=== BLOBs must not be stored in byte arrays
+
+Byte array will cause problems if BLOBs get large because the entire BLOB is loaded into the RAM. Use the datatype link:https://docs.oracle.com/javase/7/docs/api/java/sql/Blob.html[Blob]. Stream the BLOB directly from the database to the user when the data is requested via an API.
+
+=== Do not mix granularity of temporal values
+
+* Always use link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/temporaltype[`TemporalType.TIMESTAMP`] with link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/temporal[`@Temporal`].
+* Mixing with other granularities causes problems when comparing one value to another.
+====
+
+
+=== Evaluation articles
+
+The evaluation articles compare technologies, where there's no standardization possible and highlight the benefits and concerns of each technology. 
+
+A final recommendation or rule of thumb at the end of the article helps the reader to get to a educated decision for a certain problem.
+
+== Examples
+
+Showing a concrete implementation explains certain circumstances better than a thousand words. 
+Therefore devonfw provides lots of tiny examples that explain core concepts.
+The examples are located in the `examples` folder. The structure underneath it should follow the structure of the website, so that examples belonging to articles can be easily found. 
+Articles that have an example should link to the example on the website.
+The link should always point to the root folder of the concrete example.
+
+Each example should:
+
+* Be a own project based on a supported framework
+* Have a README.adoc file that explains the example, what it should show and how to use (execute it)
+* Use Unit tests to show most of the test cases. 
+* Be as small as possible. Only create classes and layers that are necessary to show the concrete case(s)
+* Consistent with devonfw. Coding Conventions, naming conventions, good practices that are described should all be applied on th written code. Therefore, keep is small!
+
+If it is necessary to build and deploy the application itself or third party tools, then the example should also deliver:
+
+* Multistage Dockerfile (at least build and deploy)
+* Helm Charts
+* Kubernetes Yamls (if further necessary to helm)
+* link:http://task.dev[Taskfile] that combines the deploy commands
+
+== Asciidoc
+
+=== Tabs
+
+It is possible to add tabs if there is different for different situations. Currently only Spring and Quarkus are separated this way. The tabs are added with:
+
+[source,asciidoc]
+----
+[tabs] 
+==== 
+Spring:: 
++ 
+-- 
+
+--
+
+Quarkus::
++
+--
+
+--
+====
+----
+
+`Spring` and `Quarkus` are the titles of the tabs. The content of the tabs is added between the `--`. 
+
+NOTE: To use `====` inside a tab e.g. for a note or warning, use `=====` instead of `====` for a nested block.
+
+=== Code Blocks and Callouts
+
+To explain source code callouts can be used:
+
+[source,asciidoc]
+....
+[source, java]
+----
+@Entity
+public class ChildEntity {
+   private ParentEntity father;
+
+   @ManyToOne //<1>
+   @JoinColumn(name="father") //<2>
+   public ParentEntity getFather() {
+      return this.father;
+   }
+
+   public void setFather(ParentEntity father) {
+      this.father = father;
+   }
+}
+----
+<1> A child has exactly one (biological) father but many children can have the same father.
+<2> `father` is the name of the column with the foreign key.
+....
+
+More information can be found link:https://docs.asciidoctor.org/asciidoc/latest/verbatim/callouts/[here].
+
+
+== Git and Github
+
+=== Issues
+
+In Github issues are created and tracked to propose new changes and to track progress.
+It was decided to create one issue per article page. 
+Instead of  closing an issue after work is done (The usual flow) those issues keep track of the unresolved discussions, history and open points. 
+Issues are only closed, when the article is removed or all questions are resolved. Issues might be reopened once new questions arise.
+
+Each article contains a comment in the first line referencing the issue.
+
+=== Branches
+
+* Only master and feature branches are used
+* feature branches should start with 'feature' and include the issue number and a speaking name. `feature/<issue-number>_<speaking name>. For example `feature/16_exception_handling`
+
+=== Commits
+
+* Include the issue number into each commit
+* Write good commit messages. The rules mentioned link:https://cbea.ms/git-commit/[here] could help you on that.
+

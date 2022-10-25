@@ -1,0 +1,14 @@
+= CSRF
+
+Cross-site request forgery (CSRF) is a vulnerability that allows an attacker to perform actions on a website, the user did not intend to do.
+CSRF assumes that the user is logged into a session and the attacker can reuse that logged-in session to perform an action.
+
+Read more:
+
+* https://portswigger.net/web-security/csrf
+* https://docs.spring.io/spring-security/site/docs/5.0.x/reference/html/csrf.html
+
+== Reference
+* https://docs.spring.io/spring-security/reference/features/exploits/csrf.html
+* https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html
+

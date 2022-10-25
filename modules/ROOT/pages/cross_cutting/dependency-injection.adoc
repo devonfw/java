@@ -1,0 +1,36 @@
+# Dependency Injection
+
+A good starting point for understanding DI is https://en.wikipedia.org/wiki/Dependency_injection.
+
+[tabs] 
+==== 
+Spring:: 
++ 
+-- 
+In spring the reference documentation explains the dependency injection (DI) aka Inversion of Control (IoC) mechanisms in deep details:
+https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans-introduction
+
+A more practical guide can be found here:
+https://www.baeldung.com/inversion-control-and-dependency-injection-in-spring and more topics around DI here: https://www.baeldung.com/spring-dependency-injection
+--
+
+Quarkus::
++
+--
+For quarkus the following article explains the details of dependency injection:
+https://quarkus.io/guides/cdi-reference
+--
+====
+
+## Use annotations over xml for controlling DI
+
+Some frameworks like spring might still allow Bean definitions via XML. This should be avoided and instead the annotations should be used.
+
+## Use constructor injection
+
+Constructor injection makes the code better testable, because dependencies can be mocked without using reflection techniques.
+
+## Spring specific rules
+
+### Omit @Autowired annotation on constructor injection
+Starting with spring 4.3 @Autowired is not necessary anymore on constructor injection. If the used version is higher or equal 4.3, then the annotation should be omitted.
