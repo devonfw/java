@@ -1,14 +1,4 @@
 = Open Api Generator
-// https://github.capgemini.com/CG-Europe-ABL/devonfw/issues/6
-
-[NOTE]
-====
-
-This article needs further clarification. Help the project by contribution.
-
-https://github.capgemini.com/CG-Europe-ABL/devonfw/issues/6
-
-====
 
 OpenApi is a specification to describe restful service endpoints in a human and computer readable format.
 
