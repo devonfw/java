@@ -65,24 +65,35 @@ BookingMessages::
 [source, java]
 ----
 public enum BookingMessages {
-  WELCOME("welcome"), // <1>
-  BOOKING_DATE_SHORT("bookingDateShort");
-  private final String value;
-  private static final String MESSAGE_BUNDLE_NAME = "booking"; // <2>
-  private static final MessageTranslator MESSAGE_TRANSLATOR = MessageTranslator.getInstance(MESSAGE_BUNDLE_NAME); // <3>
-  public BookingMessage(value) { ... }
-  public String translateTo(Locale locale, Object... args) {  // <4>
-    return MESSAGE_TRANSLATOR.translateIn(this.value, locale, args);
-  }
-  public String translateTo(Object... args) { 
-    // Define Locale on your needs (e.g. from user context or System.Defaul_Locale) and call <4> 
-  }
+    WELCOME_UNKNOWN("welcomeUnknown"),// <1>
+    BOOKING_DATE_LONG("bookingDateLong");
+
+    private final String value;
+    private static final String MESSAGE_BUNDLE_NAME = "booking"; // <2>
+    private static final MessageTranslator MESSAGE_TRANSLATOR = MessageTranslator.getInstance(MESSAGE_BUNDLE_NAME); // <3>
+
+    public BookingMessage(value) { ... }
+
+    public String translate(Locale locale, Map<String, Object> arguments) {  // <4>
+        return MESSAGE_TRANSLATOR.translate(this.value, locale, arguments);
+    }
+    public String translate() {
+        return MESSAGE_TRANSLATOR.translate(this.value, Locale.getDefault(), Collections.emptyMap());
+    }
+
+    public String translate(Locale locale) {
+        return MESSAGE_TRANSLATOR.translate(this.value, locale,  Collections.emptyMap());
+    }
+
+    public String translate(Map<String, Object> arguments) {
+        return MESSAGE_TRANSLATOR.translate(this.value, Locale.getDefault(), arguments);
+    }
 }
 ----
 <1> One enum per message. The value is the message key in the properties file
 <2> The name of the location of the corresponding message bundle (/i18n/<MESSAGE_BUNDLE_NAME>/messages/)
 <3> The translator for messages.
-<4> A translation method using the translator
+<4> A translation method using the translator, overloaded to make it easier to use in code
 --
 MessageTranslator::
 +
@@ -92,36 +103,42 @@ There should be one `MessageTranslator` instance per group of messages (in this 
 The group of messages is defined by the folder in which the message_<COUNTRY>.properties files are located.
 Each `MessageTranslator` has an link:https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html[`ResourceBundle`] per Locale. 
 When a messageKey should be translated into a locale message, the translator looks up the link:https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html[`ResourceBundle`] for the locale and returns the message from it.
-Then link:https://unicode-org.github.io/icu/userguide/icu4j/[ICU4J] is used to format the message and replace variables.
+Then link:https://unicode-org.github.io/icu/userguide/icu4j/[ICU4J] is used to format the message and replace variables. In this example maps are used to allow named paramters. When using the native Message Formatter this is not possible. 
 [source, java]
 ----
 public class MessageTranslator {
-  private final static ConcurrentHashMap<String, MessageTranslator> instances = 
-    new ConcurrentHashMap <>(); // <1>
-  private final ConcurrentHashMap<Locale, ResourceBundle> bundleMap = new ConcurrentHashMap<>(); // <2>
-  private final String BASE_DIRECTORY_NAME = "i18n";
-  private final String MESSAGE_PROPERTY_PREFIX = "message";
-  private final String messageBundleName; // <3>
-  public static MessageTranslator getInstance(String messageBundleName) { // <1>
-    return instances.computeIfAbsent(messageBundleName, MessageTranslator::new);
-  }
-  private MessageTranslator(String messageBundleName) { ... }
-  private String getLocaleMessage(String messageKey, Locale locale) { // <4>
-    String bundlePath = String.join("/", BASE_DIRECTORY_NAME, messageBundleName, MESSAGE_PROPERTY_PREFIX);
-    ResourceBundle bundle = bundleMap.computeIfAbsent(locale, (key) ->
-      ResourceBundle.getBundle( bundlePath, key, Thread.currentThread().getContextClassLoader()));
-    return bundle.getString(patternKey);
-  }
-  public String translateIn(String messageKey, Locale locale, Object... arguments){
-    String localeMessage = getLocaleMessage(messageKey, locale);
-    MessageFormat messageFormat = new MessageFormat(localeMessage, locale);
-    return messageFormat.format(arguments, new StringBuffer(), new FieldPosition(0)).toString(); // <5>
-  }
-  // Add overloaded methods of translateIn depending on your needs. 
-  // For example using a specific locale by default (e.g. system default or from user context)
+    private final static ConcurrentHashMap<String, MessageTranslator> instances = new ConcurrentHashMap <>(); // <1>
+    private final ConcurrentHashMap<Locale, ResourceBundle> bundleMap = new ConcurrentHashMap<>(); // <2>
+    private final String BASE_DIRECTORY_NAME = "i18n";
+    private final String MESSAGE_PROPERTY_PREFIX = "message";
+    private final String messageBundleName; // <3>
+
+    private MessageTranslator(String messageBundleName){...}
+
+    public static MessageTranslator getInstance(String messageBundleName) {// <1>
+        return instances.computeIfAbsent(messageBundleName, MessageTranslator::new);
+    }
+
+    private String getPattern(String patternKey, Locale locale){// <4>
+        ResourceBundle bundle = bundleMap.computeIfAbsent(locale, (key) ->
+             ResourceBundle.getBundle(
+                String.join("/", BASE_DIRECTORY_NAME, messageBundleName, MESSAGE_PROPERTY_PREFIX),
+                key,
+                Thread.currentThread().getContextClassLoader()
+             )
+        );
+        return bundle.getString(patternKey);
+    }
+
+    public String translate(String patternKey, Locale locale, Map<String, Object> arguments){
+        String pattern = getPattern(patternKey, locale);
+        MessageFormat messageFormat = new MessageFormat(pattern, locale);
+        StringBuffer stringBuffer = new StringBuffer();
+        return messageFormat.format(arguments, stringBuffer, new FieldPosition(0)).toString();// <5>
+    }
 }
 ----
-<1> A `MessageTranslator` instance exists for each group of messages. 
+<1> A `MessageTranslator` instance exists for each group of messages. Make sure to use thread safe code. 
 <2> A `MessageTranslator` instance has a link:https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html[`ResourceBundle`] per locale.
 <3> The messageBundles are stored in the same folder with the pattern `i18n/<messageBundleName>/message_<LOCALE>.properties`
 <4> Returns the message from the locale-specific link:https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html[`ResourceBundle`] using the bundleMap.
@@ -132,7 +149,7 @@ message_en_US.properties::
 --
 ----
 welcome=Welcome {0}
-bookingDateShort=Your table is booked at {0, date, short}. <1>
+bookingDateShort=Your table is booked at {bookingDate, date, short}. <1>
 ----
 <1> Will return the date in a numeric format depending on LOCALE (e.g. 24.10.22 in german or 10/24/22 in US). See link:https://unicode-org.github.io/icu/userguide/format_parse/datetime/[ICU Formatting details].
 --
@@ -142,8 +159,8 @@ bookingDateShort=Your table is booked at {0, date, short}. <1>
 === Usage example
 [source,java]
 ----
-String welcomeText = BookingMessages.WELCOME.translate("Peter");
-System.out.println(welcomeText);
+String welcomeText = BookingMessages.BOOKING_DATE_LONG.translate(Map.of("bookingDate", date));
+System.out.println(welcomeText); //OUT: Your table is booked at January 15, 2022.
 ----
 
 In this example, the constant `WELCOME` from the enum `BookingMessages` is used to call the "translate" function. The "translate" function is then using the `MessageTranslator` to convert the message into the current locale language. To make this possible, the translator is using a ResourceBundler to obtain the message text from the `message.properties` file and the Messageformatter to replace the placeholder with the input "Peter". After the translation, the message is returned.
