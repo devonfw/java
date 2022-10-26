@@ -19,34 +19,34 @@ Nerdctl is a "docker-compatible" cli tool for the containerd runtime. It mimics 
 
 === Building an image for locale k8s
 [tabs]
-====
+=====
 Docker::
 +
 --
-    Create a locale image from Dockerfile for local kubernetese cluster
-    -----
-    docker build -t image_name .
-    -----
+Create a locale image from Dockerfile for local kubernetese cluster
+----
+docker build -t image_name .
+----
 
-    Create objects in the cluter from a configuration file
-    -----
-    kubectl apply -f configFile.yaml
-    -----
+Create objects in the cluter from a configuration file
+----
+kubectl apply -f configFile.yaml
+----
 --
 Nerdctl::
 +
 --
-    Create a locale image from Dockerfile for local kubernetese cluster
-    -----
-    nerdctl build -t image_name --namespace k8s.io .
-    -----
+Create a locale image from Dockerfile for local kubernetese cluster
+----
+nerdctl build -t image_name --namespace k8s.io .
+----
 
-    Create objects in the cluter from a configuration file
-    -----
-    kubectl apply -f configFile.yaml
-    -----
+Create objects in the cluter from a configuration file
+----
+kubectl apply -f configFile.yaml
+----
 --
-====
+===== 
 
 
 Yaml files define the structure of a kuberentes application. Each link:https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/[object] inside the cluster can be described with a yaml file.
