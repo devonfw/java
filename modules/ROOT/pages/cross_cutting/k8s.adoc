@@ -1,4 +1,4 @@
-= Kubernetes
+= Kubernetes (k8s)
 
 Kubernetes(k8s) is an open source system for link:https://www.redhat.com/en/topics/containers/what-is-container-orchestration[container orchestration]. Kubernetes allows the automatic management of containers. Learn more about Kubernetes link:https://kubernetes.io/de/[here].
 
@@ -48,6 +48,7 @@ kubectl apply -f configFile.yaml
 --
 ===== 
 
+== Using Yaml Config files
 
 Yaml files define the structure of a kuberentes application. Each link:https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/[object] inside the cluster can be described with a yaml file.
 Kuberentes has lots of different objects. To get startet check out the following:
@@ -56,6 +57,11 @@ Kuberentes has lots of different objects. To get startet check out the following
 - link:https://kubernetes.io/docs/concepts/services-networking/service/[Service]
 - link:https://kubernetes.io/docs/concepts/configuration/configmap/[ConfigMap] 
 - link:https://kubernetes.io/docs/concepts/configuration/secret/[Secrets]
+
+To create an object inside the cluster run
+----
+kubectl apply -f configFile.yaml
+----
 
 
 == Using Helm
