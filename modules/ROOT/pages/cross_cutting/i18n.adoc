@@ -160,7 +160,7 @@ bookingDateShort=Your table is booked at {bookingDate, date, short}. <1>
 [source,java]
 ----
 String bookingDateText = BookingMessages.BOOKING_DATE_SHORT.translate(Map.of("bookingDate", date));
-System.out.println(bookingDateText); //OUT: Your table is booked at 24.10.2022.
+System.out.println(bookingDateText); //OUT: Your table is booked at 10/24/22.
 ----
 
 In this example, the constant `BOOKING_DATE_SHORT` from the enum `BookingMessages` is used to call the "translate" function. The "translate" function is then using the `MessageTranslator` to convert the message into the current locale language. To make this possible, the translator is using a ResourceBundler to obtain the message text from the `message.properties` file and the Messageformatter to replace the placeholder with the input variable containing the date. After the translation, the message is returned.
