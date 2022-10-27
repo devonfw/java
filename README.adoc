@@ -1,18 +1,10 @@
 = devonfw website
 
-This is the devonfw website including the full documentation of devonfw.
-
-====
-@TODO: -> New issue
-
-* How to contribute
-** We need rules for the website
-** Style guides for the documentation (env config?)
-** Way of writting
-** DoD
-====
+This is the java part of the link:https://devonfw.com[devonfw website].
 
 == Local development of the website
+
+To test changes locally, this part of the website can be built separately from the rest of the website.
 
 === Install dependencies
 
