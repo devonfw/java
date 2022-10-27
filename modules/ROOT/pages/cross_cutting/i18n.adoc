@@ -65,8 +65,8 @@ BookingMessages::
 [source, java]
 ----
 public enum BookingMessages {
-    WELCOME_UNKNOWN("welcomeUnknown"),// <1>
-    BOOKING_DATE_LONG("bookingDateLong");
+    WELCOME("welcome"),// <1>
+    BOOKING_DATE_SHORT("bookingDateShort");
 
     private final String value;
     private static final String MESSAGE_BUNDLE_NAME = "booking"; // <2>
@@ -159,11 +159,11 @@ bookingDateShort=Your table is booked at {bookingDate, date, short}. <1>
 === Usage example
 [source,java]
 ----
-String bookingDateText = BookingMessages.BOOKING_DATE_LONG.translate(Map.of("bookingDate", date));
-System.out.println(bookingDateText); //OUT: Your table is booked at January 15, 2022.
+String bookingDateText = BookingMessages.BOOKING_DATE_SHORT.translate(Map.of("bookingDate", date));
+System.out.println(bookingDateText); //OUT: Your table is booked at 24.10.2022.
 ----
 
-In this example, the constant `BOOKING_DATE_LONG` from the enum `BookingMessages` is used to call the "translate" function. The "translate" function is then using the `MessageTranslator` to convert the message into the current locale language. To make this possible, the translator is using a ResourceBundler to obtain the message text from the `message.properties` file and the Messageformatter to replace the placeholder with the input variable containing the date. After the translation, the message is returned.
+In this example, the constant `BOOKING_DATE_SHORT` from the enum `BookingMessages` is used to call the "translate" function. The "translate" function is then using the `MessageTranslator` to convert the message into the current locale language. To make this possible, the translator is using a ResourceBundler to obtain the message text from the `message.properties` file and the Messageformatter to replace the placeholder with the input variable containing the date. After the translation, the message is returned.
 
 
 image::TranslationFlow.drawio.svg["Translation Flow"]
