@@ -1,0 +1,38 @@
+= Logging
+
+Nowadays, multiple frameworks are available in logging. This article mainly focuses on which framework to use on logging?
+
+Well known framework for logging in Java are:
+
+* Log4j
+* LogBack
+* Log4J2
+
+Also, some facade framework like :
+
+* Apache commons logging
+* SLF4J
+
+== Logging in Springboot
+
+Spring Boot uses Apache Commons logging for all internal logging. Spring Boot’s default configurations provides a support for the use of Java Util Logging, Log4j2, and Logback. 
+
+Logback and Log4j2 are more advanced versions. Both of them are very similar but Log4J2 provides some minor fixes over Logback.
+Performance of both the framework is good except few cases.
+
+To define logging strategy, we can include one of the facade logging freamework such as Apache commons logging or SLF4J which mainly have logging interfaces in it. For its implementation most popular choice is Logback and Log4J2.
+
+Log4J2 has slightly better features for: 
+- Lazy Loading messages
+- Async Logging
+
+If your usecase include any of the two Log4J2 is better choice over Logback.
+
+
+== Logging in Quarkus:
+
+Internally, Quarkus uses JBoss Log Manager and the JBoss Logging facade.Quarkus always logs through JBoss LogManager. The dependencies you can add (log4j2-jboss-logmanager etc.) are just bridges that let you use the respective logging facade, while everything still goes to JBoss LogManager behind the scenes.
+
+More details on logging in quarkus can be found link:https://quarkus.io/guides/logging[here]'
+
+Recently, there is one extension for logback from quarkus. Please find more details link:https://quarkiverse.github.io/quarkiverse-docs/quarkus-logging-logback/dev/index.html[here]
