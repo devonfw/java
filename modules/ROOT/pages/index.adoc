@@ -1,6 +1,6 @@
 :imagesdir: ../images
 
-= Welcome to devon4j
+= Welcome to the java stack of devonfw
 
 devon4j is a collection of good practices and experiences when developing enterprise applications at scale.
 By standardizing the development process and the usage of established frameworks and libraries devon4j aims to accelerate the ramp-up and onboarding phase.
