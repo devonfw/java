@@ -1,6 +1,6 @@
 * xref:getting_started/getting_started.adoc[]
 ** xref:getting_started/create_rest_service.adoc[]
-* xref:architecture/architecture.adoc[]
+* Architecture
 ** xref:architecture/layered_architecture.adoc[]
 
 * Integration
