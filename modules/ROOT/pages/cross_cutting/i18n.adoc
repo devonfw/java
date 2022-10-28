@@ -1,5 +1,4 @@
 = Internationalization (I18N)
-// https://github.capgemini.com/CG-Europe-ABL/devonfw/issues/36
 
 Read the link:https://docs.oracle.com/javase/8/docs/technotes/guides/intl/index.html[official oracle documentation] 
 or the link:https://www.baeldung.com/java-8-localization[Baeldung article] about internationalization as introduction.
