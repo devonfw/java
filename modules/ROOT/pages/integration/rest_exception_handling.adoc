@@ -1,4 +1,14 @@
 = RESTful Exception Handling
+// https://github.capgemini.com/CG-Europe-ABL/devonfw/issues/16
+
+[NOTE]
+====
+
+This article needs further clarification. Help the project by contribution.
+
+https://github.capgemini.com/CG-Europe-ABL/devonfw/issues/16
+
+====
 
 This article gives advice on a proper exception handling in the service layer.
 It is important to catch all exceptions and map them to a meaningful result and not pass implementation details to the outside.
@@ -118,5 +128,62 @@ E.g.: adding a property that is false on default and when set to true the detail
 
 |===
 
+== Concrete Steps
+
+=== Library
+
+* Use Jakarta EE ExceptionMapper
+* Add a provider for spring boot? Or also for quarkus?
+
+=== Identify exceptions of groups
+
+* If exceptionmapper can handle mutliple specific exceptions,
+** then add one exception handler per group that has a specific handling
+* ELSE
+** use a single exceptionmapper to catch everything. 
+** Create group specific handler that contain a handling method and a list of exception classes
+** The exceptionmapper needs to identify (inject) all possible handlers and check for their ability to handle certain classes (performance?)
+** It then delegates the exceptions dynamically
+
+=== Create the response
+
+* Create response factory that can create responses based on multiple input values.
+
+== Examples 
+
+=== The structure of exceptions
+
+*The structure of exceptions can be described as follows:*
+
+First of all, this following picture shows a general structure of an application with exceptions.
+
+[#application-structure]
+image::structure_application.svg["structure-application",scaledwidth="80%",align="center"]
+
+
+* specific exception classes are derived from the ApplicationException class - such as BusinessException, ValidationException or SecurityException. 
+
+* `ErrorCode` itself is defined as an enum and contains a set of internal constants that are mapped to HttpStatus codes (like 400, 404, or 500 etc.).
+
+==== Business Exception 
+* HTTP status code depends on the reason of the exception. Default: 400 (BAD REQUEST)
+* Response Body consists of: a message, ErrorCode (a specific code) and UUID 
+* is thrown when a business rule within our application is violated (e.g. error, a compliance failure or if a requested data was not found - 404)
+
+==== Technical Exception
+* HTTP status code is 500 (Internal Server Error)
+* Response Body consists of: a message, ErrorCode (a specific code) and UUID 
+* is thrown when something goes wrong
+* technical exception is usually derived from Java’s RuntimeException
+* Example: Java’s built-in `IllegalArgumentException`
+
+=== Example application
+
+[NOTE]
+====
+In this article, we need to add a link to the example-application that clarifies the workflow of exception-handling
+
+====
+// TODO: add the link to the example-application in github
 
 // TODO: Provide an example using all four exception types and an exception mapper
