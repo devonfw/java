@@ -17,7 +17,7 @@ Spring::
 -- 
 Spring offers a default support for mapping with Jackson, when spring-starter-web is used.
 
-Data types such as Date and Time, Money etc requires special handling. Please find attached link:https://github.capgemini.com/CG-Europe-ABL/devonfw/tree/master/examples/service/mts-json[example].
+Data types such as Date and Time, Money etc requires special handling. Please find attached link:https://github.com/devonfw/java-samples/tree/main/integration/rest-json[example].
 --
 
 Quarkus::
