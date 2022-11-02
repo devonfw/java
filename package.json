@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "npx antora ./antora-playbook.yml",
+    "build": "npx antora --log-failure-level=error ./antora-playbook.yml",
     "dev:server": "npx http-server build/site/ -c-1 -p 5000"
   },
   "devDependencies": {
