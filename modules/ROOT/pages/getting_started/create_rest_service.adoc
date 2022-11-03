@@ -1,6 +1,6 @@
 = Create a REST service
 
-* [ ] Implement a xref:../integration/rest-service.adoc[REST interface]
+* [ ] Implement a xref:../integration/rest_service.adoc[REST interface]
 ** It is recommended to xref:../integration/rest_openapi.adoc[start with an OpenApi spec]
 * [ ] Establish the xref:../integration/rest_exception_handling.adoc[exception handling]
 * [ ] Enable xref:../cross_cutting/security/authentication.adoc[security features] for the API
