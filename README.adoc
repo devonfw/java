@@ -1,6 +1,6 @@
 = devonfw website
 
-This is the java part of the link:https://devonfw.com[devonfw website].
+This is the Java part of the link:https://devonfw.com[devonfw website].
 
 == Local development of the website
 

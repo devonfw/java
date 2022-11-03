@@ -1,6 +1,6 @@
 :imagesdir: ../images
 
-= Welcome to the java stack of devonfw
+= Welcome to the Java stack of devonfw
 
 This stack is a collection of good practices and experiences when developing enterprise applications at scale.
 By standardizing the development process and the usage of established frameworks and libraries devonfw aims to accelerate the ramp-up and onboarding phase.

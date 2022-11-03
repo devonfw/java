@@ -32,7 +32,7 @@ link:https://openapi-generator.tech/docs/plugins[Configure] the openapi generato
 When generating a client, the client encapsulates the HttpClient library, making it easy to exchange. The library can be set by changing the `library` option inside the plugin configuration.
 
 Some minor changes need to be done when changing the library.
-For link:https://docs.oracle.com/en/java/javase/12/docs/api/java.net.http/java/net/http/HttpClient.html[native java library], the method for changing the server path is `updateBaseUri`.
+For link:https://docs.oracle.com/en/java/javase/12/docs/api/java.net.http/java/net/http/HttpClient.html[native Java library], the method for changing the server path is `updateBaseUri`.
 For other libraries, it is `setBasePath`. When switching, this needs to be changed. See the example for the details.
 
 Dependent on the library, error handling can be different.
