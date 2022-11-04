@@ -45,7 +45,7 @@ It is divided into the same business components as the backend with only the _cl
 
 [IMPORTANT]
 ====
-Front-end services are not in focus of devon4j. 
+Front-end services are not in focus of the Java stack. 
 The client layer is added for completeness.
 devonfw supports clients based on single page applications with Angular with devon4ts.
 ====
@@ -105,7 +105,7 @@ For large modulith systems further rules and stricter divisions might be necessa
 The folder structure should be aligned with the link:https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html[maven standard directory layout].
 
 All sources belonging to the project should be located under `src/main` in corresponding subfolders. 
-Obvious sources are java source code and static resources that are used.
+Obvious sources are Java source code and static resources that are used.
 Other sources like Dockerfiles, helm charts, kubernetes configurations, scripts, etc. should be located in `src/main` as well.  
 
 The following examples shows a potential folder structure, that might be extended based on the need. 
