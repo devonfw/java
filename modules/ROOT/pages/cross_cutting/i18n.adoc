@@ -7,6 +7,7 @@ or the link:https://www.baeldung.com/java-8-localization[Baeldung article] about
 
 * link:https://docs.oracle.com/javase/8/docs/api/java/util/ResourceBundle.html[Java SEs ResourceBundle] for localizing messages. 
 * link:https://docs.oracle.com/javase/7/docs/api/java/text/MessageFormat.html[Java SEs MessageFormat] for formatting the messages (for example variable replacement) 
+* For more complex translations, use the link:https://unicode-org.github.io/icu-docs/apidoc/released/icu4j/com/ibm/icu/text/MessageFormat.html[ICU MessageFormat] library.
 
 === Formatting
 
@@ -17,31 +18,155 @@ Also consider:
 * Dates
 * Currency
 
-Check link:https://docs.oracle.com/javase/7/docs/api/java/text/MessageFormat.html[Java SEs MessageFormat] for further links on specialized formatters
+Check link:https://docs.oracle.com/javase/7/docs/api/java/text/MessageFormat.html[Java SEs MessageFormat] for further links on specialized formatters.
 
-=== Further references
+To test ICU patterns, use this link:http://format-message.github.io/icu-message-format-for-translators/index.html[Demo page].
 
-* https://docs.oracle.com/javase/8/docs/api/java/util/ResourceBundle.html
-* https://www.baeldung.com/java-localization-messages-formatting
 
 == Localization Properties
 === Use only property files
-Do not store key value pairs of messages and the corresponding localized message in code.
-Always create a default property and localized properties in the same folder to make it easy to keep them in sync.
+- Do not store key value pairs of messages and the corresponding localized message in code.
+- Always create a default property and localized properties in the same folder to make it easy to keep them in sync.
+- The language files should store a speaking key and a pattern containing the text to translate.
+- Always use the country code in combination with the language code. This is no big overhead at the beginning and future proof.
+- All language files are stored in the following structure.
+----
+src/main/
+├─ resources/
+│  ├─ i18n/
+│  │  ├─ [{moduleName}]/
+│  │  │  ├─ message.properties
+│  │  │  ├─ message_de_DE.properties
+│  │  │  ├─ message_en_US.properties
+│  │  │  ├─ message_[{languageCode}]_{countryCode}].properties
+----
 
-=== Always use country locale for the property name.
-Do not use just the language to specify locale properties.
-Instead always use the country in combination with the language.
-This is no big overhead at the beginning and future proof.
+== Translation pattern
 
+To make it easy to translate messages inside the application, it's recommended to use an enum pattern. 
+
+- The keys are referenced in an enum so that they can be easily used in code.
+- The messages can be split according to the needs into different modules. For each module, an own enum is created.
+- The enums have a translation method leading to an easy translation into the selected locale. 
+
+View the code snipped `BookingMessages` for an example.
+
+For the translation, the enums call a translator that encapsulates the library. This wrapper makes it easy to change the library in later. For example, when starting without ICU and pluralization is required later, it's easy to switch out the native Message Formatter with the ICU Message Formatter.
+
+View the code snipped `MessageTranslator` for an example.
+
+
+[tabs]
+====
+BookingMessages::
++
+--
+[source, java]
+----
+public enum BookingMessages {
+    WELCOME("welcome"),// <1>
+    BOOKING_DATE_SHORT("bookingDateShort");
+
+    private final String value;
+    private static final String MESSAGE_BUNDLE_NAME = "booking"; // <2>
+    private static final MessageTranslator MESSAGE_TRANSLATOR = MessageTranslator.getInstance(MESSAGE_BUNDLE_NAME); // <3>
+
+    public BookingMessage(value) { ... }
+
+    public String translate(Locale locale, Map<String, Object> arguments) {  // <4>
+        return MESSAGE_TRANSLATOR.translate(this.value, locale, arguments);
+    }
+    public String translate() {
+        return MESSAGE_TRANSLATOR.translate(this.value, Locale.getDefault(), Collections.emptyMap());
+    }
+
+    public String translate(Locale locale) {
+        return MESSAGE_TRANSLATOR.translate(this.value, locale,  Collections.emptyMap());
+    }
+
+    public String translate(Map<String, Object> arguments) {
+        return MESSAGE_TRANSLATOR.translate(this.value, Locale.getDefault(), arguments);
+    }
+}
+----
+<1> One enum per message. The value is the message key in the properties file
+<2> The name of the location of the corresponding message bundle (/i18n/<MESSAGE_BUNDLE_NAME>/messages/)
+<3> The translator for messages.
+<4> A translation method using the translator, overloaded to make it easier to use in code
+--
+MessageTranslator::
++
+--
+The `MessageTranslator` class uses a singleton pattern. 
+There should be one `MessageTranslator` instance per group of messages (in this example booking).
+The group of messages is defined by the folder in which the message_<COUNTRY>.properties files are located.
+Each `MessageTranslator` has an link:https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html[`ResourceBundle`] per Locale. 
+When a messageKey should be translated into a locale message, the translator looks up the link:https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html[`ResourceBundle`] for the locale and returns the message from it.
+Then link:https://unicode-org.github.io/icu/userguide/icu4j/[ICU4J] is used to format the message and replace variables. In this example, maps are used to allow named parameters. When using the native Message Formatter, this is not possible. 
+[source, java]
+----
+public class MessageTranslator {
+    private final static ConcurrentHashMap<String, MessageTranslator> instances = new ConcurrentHashMap <>(); // <1>
+    private final ConcurrentHashMap<Locale, ResourceBundle> bundleMap = new ConcurrentHashMap<>(); // <2>
+    private final String BASE_DIRECTORY_NAME = "i18n";
+    private final String MESSAGE_PROPERTY_PREFIX = "message";
+    private final String messageBundleName; // <3>
+
+    private MessageTranslator(String messageBundleName){...}
+
+    public static MessageTranslator getInstance(String messageBundleName) {// <1>
+        return instances.computeIfAbsent(messageBundleName, MessageTranslator::new);
+    }
+
+    private String getPattern(String patternKey, Locale locale){// <4>
+        ResourceBundle bundle = bundleMap.computeIfAbsent(locale, (key) ->
+             ResourceBundle.getBundle(
+                String.join("/", BASE_DIRECTORY_NAME, messageBundleName, MESSAGE_PROPERTY_PREFIX),
+                key,
+                Thread.currentThread().getContextClassLoader()
+             )
+        );
+        return bundle.getString(patternKey);
+    }
+
+    public String translate(String patternKey, Locale locale, Map<String, Object> arguments){
+        String pattern = getPattern(patternKey, locale);
+        MessageFormat messageFormat = new MessageFormat(pattern, locale);
+        StringBuffer stringBuffer = new StringBuffer();
+        return messageFormat.format(arguments, stringBuffer, new FieldPosition(0)).toString();// <5>
+    }
+}
+----
+<1> A `MessageTranslator` instance exists for each group of messages. Make sure to use thread safe code. 
+<2> A `MessageTranslator` instance has a link:https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html[`ResourceBundle`] per locale.
+<3> The messageBundles are stored in the same folder with the pattern `i18n/<messageBundleName>/message_<LOCALE>.properties`
+<4> Returns the message from the locale-specific link:https://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.html[`ResourceBundle`] using the bundleMap.
+<5> Uses the ICU's link:https://unicode-org.github.io/icu-docs/apidoc/dev/icu4j/com/ibm/icu/text/MessageFormat.html[`MessageFormat`] to format the message based on the arguments and the locale.
+--
+message_en_US.properties::
++
+--
+----
+welcome=Welcome {name}
+bookingDateShort=Your table is booked at {bookingDate, date, short}. <1>
+----
+<1> Will return the date in a numeric format depending on LOCALE (e.g. 24.10.22 in german or 10/24/22 in US). See link:https://unicode-org.github.io/icu/userguide/format_parse/datetime/[ICU Formatting details].
+--
+====
+
+
+=== Usage example
 [source,java]
 ----
-// Don't use just the language (en)
-message_en.properties // LOCALE.EN
-
-// Use the Country with language locale (language: en, country: US)
-messages_en_US.properties // LOCALE.US
+String bookingDateText = BookingMessages.BOOKING_DATE_SHORT.translate(Map.of("bookingDate", date));
+System.out.println(bookingDateText); //OUT: Your table is booked at 10/24/22.
 ----
+
+In this example, the constant `BOOKING_DATE_SHORT` from the enum `BookingMessages` is used to call the "translate" function. The "translate" function is then using the `MessageTranslator` to convert the message into the current locale language. To make this possible, the translator is using a ResourceBundler to obtain the message text from the `message.properties` file and the Messageformatter to replace the placeholder with the input variable containing the date. After the translation, the message is returned.
+
+
+image::TranslationFlow.drawio.svg["Translation Flow"]
+
 
 == Retrieve locale
 
@@ -60,3 +185,8 @@ Those settings might be stored in the application itself (e.g. the database) or 
 The localization specifics might also result from business specific indicators (e.g. A flag in a message or defined values). 
 Discuss with business responsibles on this topic.
 
+
+=== Further references
+
+* https://docs.oracle.com/javase/8/docs/api/java/util/ResourceBundle.html
+* https://www.baeldung.com/java-localization-messages-formatting

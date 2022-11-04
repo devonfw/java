@@ -1,18 +1,10 @@
 = devonfw website
 
-This is the devonfw website including the full documentation of devonfw.
-
-====
-@TODO: -> New issue
-
-* How to contribute
-** We need rules for the website
-** Style guides for the documentation (env config?)
-** Way of writting
-** DoD
-====
+This is the Java part of the link:https://devonfw.com[devonfw website].
 
 == Local development of the website
+
+To test changes locally, this part of the website can be built separately from the rest of the website.
 
 === Install dependencies
 
@@ -84,21 +76,25 @@ The evaluation articles compare technologies, where there's no standardization p
 
 A final recommendation or rule of thumb at the end of the article helps the reader to get to a educated decision for a certain problem.
 
+
 == Examples
 
 Showing a concrete implementation explains certain circumstances better than a thousand words. 
-Therefore devonfw provides lots of tiny examples that explain core concepts.
-The examples are located in the `examples` folder. The structure underneath it should follow the structure of the website, so that examples belonging to articles can be easily found. 
+Therefore, devon4j provides tiny examples that explain core concepts.
+The examples are located in the `examples` folder. 
+The underlying structure should follow the structure of the website, so that examples belonging to articles can be easily found. 
 Articles that have an example should link to the example on the website.
 The link should always point to the root folder of the concrete example.
 
-Each example should:
+=== Example Guidelines
 
 * Be a own project based on a supported framework
-* Have a README.adoc file that explains the example, what it should show and how to use (execute it)
-* Use Unit tests to show most of the test cases. 
+* Contain a README.adoc file that explains the example, what it should show and how to use (execute) it
+* Use Unit tests to show most of the test cases 
 * Be as small as possible. Only create classes and layers that are necessary to show the concrete case(s)
 * Consistent with devonfw. Coding Conventions, naming conventions, good practices that are described should all be applied on th written code. Therefore, keep is small!
+
+=== Example Deployments 
 
 If it is necessary to build and deploy the application itself or third party tools, then the example should also deliver:
 
@@ -106,6 +102,34 @@ If it is necessary to build and deploy the application itself or third party too
 * Helm Charts
 * Kubernetes Yamls (if further necessary to helm)
 * link:http://task.dev[Taskfile] that combines the deploy commands
+
+=== Example Business Case
+
+It has shown to be better understandable, when the examples follow a common business case.
+In devon4j a restaurant application has always been the #1 use case.
+The most common use case from the restaurant is the booking process.
+
+Therefore, an example application should if possible concentrate on the booking management of a restaurant.
+The data model of a booking contains:
+
+* The Booking itself containing
+** n friends
+** whatever is necessary to show the examples case
+* Invited Guests for a booking (Here the idea is that a booking is created online and friends can be invited via their mail)
+** an email address
+** whatever is also necessary
+
+The provided workflow could contain:
+
+* BookingManagementRestService with endpoints for
+** create a booking
+** get a certain booking by id
+** get all bookings
+* UcManageBooking the logic implementation if necessary
+* BookingRepository
+* InvitedGuestRepository
+
+image::img/example_use_case.drawio.svg[]
 
 == Asciidoc
 

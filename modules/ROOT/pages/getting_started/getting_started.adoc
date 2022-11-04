@@ -1,12 +1,12 @@
 = Getting started
 
-The basic way of working with devon4j:
+The basic way of working with this stack:
 
 * [ ] Download Spring or Quarkus from the official websites
 ** https://start.spring.io/
 ** https://code.quarkus.io/
 * [ ] Establish the xref:../cross_cutting/coding_conventions.adoc[coding conventions] in the team
-* [ ] Align the architecture of the new service with an xref:../architecture/architecture.adoc[architecture pattern]
+* [ ] Align the architecture of the new service with an xref:../architecture/layered_architecture.adoc[architecture pattern]
 * [ ] Prepare the xref:../cross_cutting/exceptions.adoc[exception handling]
 * [ ] Configure the service for xref:../cross_cutting/logging.adoc[logging]
 

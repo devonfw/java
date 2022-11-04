@@ -1,10 +1,10 @@
 * xref:getting_started/getting_started.adoc[]
 ** xref:getting_started/create_rest_service.adoc[]
-* xref:architecture/architecture.adoc[]
+* Architecture
 ** xref:architecture/layered_architecture.adoc[]
 
 * Integration
-** xref:integration/rest-service.adoc[]
+** xref:integration/rest_service.adoc[]
 *** xref:integration/rest_exception_handling.adoc[]
 *** xref:integration/rest_service_json.adoc[]
 *** xref:integration/rest_openapi.adoc[]
@@ -17,7 +17,7 @@
 * Cross cutting
 ** xref:cross_cutting/coding_conventions.adoc[]
 ** xref:cross_cutting/configuration.adoc[]
-** xref:cross_cutting/dependency-injection.adoc[]
+** xref:cross_cutting/dependency_injection.adoc[]
 ** xref:cross_cutting/exceptions.adoc[]
 ** xref:cross_cutting/i18n.adoc[]
 ** xref:cross_cutting/logging.adoc[]

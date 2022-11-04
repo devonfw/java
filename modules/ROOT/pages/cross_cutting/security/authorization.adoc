@@ -1,6 +1,6 @@
 = Authorization
 
-.devon4j Security Model
+.Security Model
 image::Security-AccessControl.png["access-control",scaledwidth="80%",align="center",link="images/Security-AccessControl.png"]
 
 * The _Identity- and Access-Management_ is provided by according products and typically already available in the enterprise landscape (e.g. an active directory). 

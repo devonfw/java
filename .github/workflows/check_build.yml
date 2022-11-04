@@ -1,0 +1,20 @@
+name: check-build
+
+on:
+  pull_request:
+    branches:    
+      - main
+
+jobs:
+  check-antora:
+    runs-on: ubuntu-latest
+    steps:                
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: npm install for antora-cli
+        run: |
+          npm install
+      
+      - name: Build Antora 
+        run: | 
+          npm run build 
