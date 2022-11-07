@@ -9,7 +9,7 @@ content:
     start_path: .
 ui: 
   bundle:
-    url: ./ui-bundle.zip
+    url: https://github.com/devonfw/antora-ui/releases/latest/download/ui-bundle.zip
     snapshot: true
 urls: 
   latest_version_segment: current
