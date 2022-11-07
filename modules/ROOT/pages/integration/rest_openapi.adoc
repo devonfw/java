@@ -65,6 +65,109 @@ For every API resource model, create a link:https://quarkus.io/guides/cdi-refere
 --
 =====
 
+=== Code Snippets to integrate the generation in the build tools
+
+[tabs]
+=====
+Gradle::
++
+--
+[sources,gradle]
+----
+plugins {
+   ...
+    id "org.openapi.generator" version "6.2.0"
+    ...
+}
+
+sourceSets.main.java.srcDirs += 'build/generated-sources/server/src/main/java' // <1>
+
+dependencies { // <2>
+  ...
+  implementation 'io.swagger.parser.v3:swagger-parser:2.1.7'
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
+  ...
+}
+
+
+openApiGenerate {
+    artifactId = "MyThaiApi-java-client"
+    groupId = "com.devonfw.devon4j.generated.client"
+    apiPackage = "com.devonfw.devon4j.generated.client.service"
+    modelPackage = "com.devonfw.devon4j.generated.client.model"
+    invokerPackage = "com.devonfw.devon4j.generated.client.handler"
+    inputSpec = "${rootDir}/src/main/resources/MyThaiApi.yml" // <3>
+    output = "${buildDir}/generated-sources/client"
+    generatorName = "java" // <4>
+    library = "native" // <5>
+    generateApiTests = "false"
+    generateModelTests = "false"
+    modelNameSuffix = "To"
+}
+
+tasks.compileJava.dependsOn(tasks.openApiGenerate) // <5>
+----
+<1> Add the generated sources to the sourceSets, otherwise the IDE will not know the generated files and mark them. Also autocompletion would not work.
+<2> Add the dependencies that are necessary for the generated sources
+<3> Path to the openapi spec
+<4> The generator `java` is a client generator. See https://openapi-generator.tech/docs/generators#config-generators.
+<5> The library defines with which http library the calls should be generated
+--
+
+Maven::
++
+--
+[sources, XML]
+----
+<!--Generation dependencies-->
+<dependencies>
+ ...
+		<dependency>
+			<groupId>io.swagger.parser.v3</groupId>
+			<artifactId>swagger-parser</artifactId>
+			<version>2.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>0.2.3</version>
+		</dependency>
+...
+</dependencies>
+
+<build>
+  <plugins>
+    ...
+    <plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>6.1.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<artifactId>MyThaiApi-java-client</artifactId>
+							<groupId>com.devonfw.devon4j.generated.client</groupId>
+							<apiPackage>com.devonfw.devon4j.generated.client.service</apiPackage>
+							<modelPackage>com.devonfw.devon4j.generated.client.model</modelPackage>
+							<invokerPackage>com.devonfw.devon4j.generated.client.handler</invokerPackage>
+							<inputSpec>${project.basedir}/src/main/resources/MyThaiApi.yml</inputSpec>
+							<output>${project.build.directory}/auto-generated</output>
+							<generatorName>java</generatorName>
+							<library>native</library>
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<modelNameSuffix>TO</modelNameSuffix>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+    </plugins>
+----
+--
+=====
 
 
 == For server-side
@@ -78,6 +181,115 @@ If there are multiple response types and xml should be used as default, add the 
 <withXml>true</withXml>
 ----
 
+=== Code Snippets to integrate the generation in the build tools
+
+[tabs]
+=====
+Gradle::
++
+--
+[sources,gradle]
+----
+plugins {
+   ...
+    id "org.openapi.generator" version "6.2.0"
+    ...
+  }
+
+sourceSets.main.java.srcDirs += 'build/generated-sources/server/src/main/java' // <1>
+
+dependencies { // <2>
+  ...
+  implementation 'io.swagger.parser.v3:swagger-parser:2.1.7'
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
+  ...
+}
+
+
+openApiGenerate {
+    // other settings omitted
+    inputSpec = "${rootDir}/src/main/openapi/BookingOpenApi.yaml" // <3>
+    outputDir = "${buildDir}/generated-sources/server"
+    generatorName = "spring"
+    library = "spring-boot" // <4>
+    modelNameSuffix = "To"
+    apiPackage = "com.devonfw.devon4j.generated.api.service"
+    modelPackage = "com.devonfw.devon4j.generated.api.model"
+    invokerPackage = "com.devonfw.devon4j.generated.api.handler"
+    configOptions = [
+            sourceFolder      : "src/main/java",
+            interfaceOnly     : "true",
+            serializableModel : "true",
+            singleContentTypes: "true",
+    ]
+}
+
+tasks.compileJava.dependsOn(tasks.openApiGenerate) // <5>
+----
+<1> Add the generated sources to the sourceSets, otherwise the IDE will not know the generated files and mark them. Also autocompletion would not work.
+<2> Add the dependencies that are necessary for the generated sources
+<3> Path to the openapi spec
+<4> Depending on the library the annotations are different. Here we define spring-boot.
+<5> Add a dependeny from compile to openApiGenerate so that the sources are generated before the compile task.
+--
+
+Maven::
++
+--
+[sources, XML]
+----
+<!--Generation dependencies-->
+<dependencies>
+ ...
+		<dependency>
+			<groupId>io.swagger.parser.v3</groupId>
+			<artifactId>swagger-parser</artifactId>
+			<version>2.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>0.2.3</version>
+		</dependency>
+...
+</dependencies>
+
+<build>
+  <plugins>
+    ...
+    <plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>6.1.0</version>
+				<executions>
+					<execution>
+						<id>server-generator</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/MyThaiApi.yml</inputSpec>
+							<output>${project.build.directory}/generated-sources/server</output>
+							<generatorName>spring</generatorName>
+							<library>spring-boot</library>
+							<modelNameSuffix>To</modelNameSuffix>
+							<apiPackage>com.devonfw.devon4j.generated.api.service</apiPackage>
+							<modelPackage>com.devonfw.devon4j.generated.api.model</modelPackage>
+							<invokerPackage>com.devonfw.devon4j.generated.api.handler</invokerPackage>
+							<configOptions>
+								<sourceFolder>src/java/main</sourceFolder>
+								<interfaceOnly>true</interfaceOnly>
+								<serializableModel>true</serializableModel>
+								<singleContentTypes>true</singleContentTypes>
+							</configOptions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+    </plugins>
+----
+--
+=====
 
 == References
 
