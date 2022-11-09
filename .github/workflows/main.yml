@@ -13,4 +13,4 @@ jobs:
         with:
           token: ${{ secrets.GHA_TOKEN }}
           repository: devonfw/devonfw.github.io
-          event-type: dispatch-update-website
+          event-type: dispatch-build-website
