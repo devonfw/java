@@ -29,17 +29,36 @@ https://quarkus.io/guides/rest-json
 --
 ====
 
-// == Certain datatype considerations
+=== Use ISO8601 in UTC for timestamp representation
 
-// === DataTime
+It's recommended to use link:https://en.wikipedia.org/wiki/ISO_8601[ISO 8601] as timestamp representation `yyyy-MM-dd'T'HH:mm:ssXXX`.
+Furthermore, always send timezones in UTC.
 
-// https://stackoverflow.com/questions/10286204/what-is-the-right-json-date-format
-// TODO: Is this the default in jackson? If not how to parse it to this format? -> Sneha should document her findings
+This can be achieved on a `ZonedDateTime` field with the following annotation:
 
-// === Currency
+[soure,java]
+----
+@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "UTC", lenient = OptBoolean.TRUE)
+----
 
-// Easiest would be string + currency and than mapping in BigDecimal
-// TODO: Add a guide on how to parse currency -> Sneha should document her findings
+=== Send monetary amounts as separation of amount and currency
+
+Monetary amounts should be best representated as object consisting of the actual amount and the currency.
+[soure,javascript]
+----
+...
+"money": {
+  "amount": 200.00,
+  "currency": "USD"
+  },
+...
+----
+
+link:https://github.com/zalando/jackson-datatype-money[Zalandos Jackson Datatype Money] is a implementation for this.
+
+== Example
+
+- https://github.com/devonfw/java-samples/tree/main/integration/rest-json
 
 == References
 - https://stackoverflow.com/questions/30362446/deserialize-json-with-jackson-into-polymorphic-types-a-complete-example-is-giv
