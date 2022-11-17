@@ -47,7 +47,7 @@ It is divided into the same business components as the backend with only the _cl
 ====
 Front-end services are not in focus of the Java stack. 
 The client layer is added for completeness.
-devonfw supports clients based on single page applications with Angular with devon4ts.
+devonfw supports clients based on single page applications with Angular with the typescript stack.
 ====
 
 ==== Dependencies
