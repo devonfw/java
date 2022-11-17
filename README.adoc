@@ -80,7 +80,7 @@ A final recommendation or rule of thumb at the end of the article helps the read
 == Examples
 
 Showing a concrete implementation explains certain circumstances better than a thousand words. 
-Therefore, devon4j provides tiny examples that explain core concepts.
+Therefore, devonfw provides tiny examples that explain core concepts.
 The examples are located in the `examples` folder. 
 The underlying structure should follow the structure of the website, so that examples belonging to articles can be easily found. 
 Articles that have an example should link to the example on the website.
@@ -106,7 +106,7 @@ If it is necessary to build and deploy the application itself or third party too
 === Example Business Case
 
 It has shown to be better understandable, when the examples follow a common business case.
-In devon4j a restaurant application has always been the #1 use case.
+In devonfw a restaurant application has always been the #1 use case.
 The most common use case from the restaurant is the booking process.
 
 Therefore, an example application should if possible concentrate on the booking management of a restaurant.
