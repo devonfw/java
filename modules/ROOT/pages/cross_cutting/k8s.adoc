@@ -1,0 +1,73 @@
+= Kubernetes (k8s)
+
+Kubernetes(k8s) is an open source system for link:https://www.redhat.com/en/topics/containers/what-is-container-orchestration[container orchestration]. Kubernetes allows the automatic management of containers. Learn more about Kubernetes link:https://kubernetes.io/de/[here].
+
+
+== Setup 
+[NOTE]
+====
+link:https://www.docker.com/pricing/faq/[Docker Desktop] is no longer free for large companies. Please use Rancer Desktop instead. 
+====
+* Install Rancher Desktop with the link:https://github.com/devonfw/ide[DevonIDE]
+* Choose a container Runtime containerd or dockerd(moby)
+** containerd is using the link:https://github.com/containerd/nerdctl[nerdctl]
+** dockerd is using the link:https://github.com/docker/cli[docker cli]
+
+== Commands
+
+Nerdctl is a "docker-compatible" cli tool for the containerd runtime. It mimics the docker interface in most cases. For the local development, the only difference is shown below.
+
+=== Building an image for locale k8s
+[tabs]
+=====
+Docker::
++
+--
+Create a locale image from Dockerfile for local kubernetese cluster
+----
+docker build -t image_name .
+----
+
+Create objects in the cluter from a configuration file
+----
+kubectl apply -f configFile.yaml
+----
+--
+Nerdctl::
++
+--
+Create a locale image from Dockerfile for local kubernetese cluster
+----
+nerdctl build -t image_name --namespace k8s.io .
+----
+
+Create objects in the cluter from a configuration file
+----
+kubectl apply -f configFile.yaml
+----
+--
+===== 
+
+== Using Yaml Config files
+
+Yaml files define the structure of a kuberentes application. Each link:https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/[object] inside the cluster can be described with a yaml file.
+Kuberentes has lots of different objects. To get startet check out the following:
+
+- link:https://kubernetes.io/docs/concepts/workloads/controllers/deployment/[Deployment]
+- link:https://kubernetes.io/docs/concepts/services-networking/service/[Service]
+- link:https://kubernetes.io/docs/concepts/configuration/configmap/[ConfigMap] 
+- link:https://kubernetes.io/docs/concepts/configuration/secret/[Secrets]
+
+To create an object inside the cluster run
+----
+kubectl apply -f configFile.yaml
+----
+
+
+== Using Helm
+
+link:https://helm.sh/[Helm] is a commandline tool to help define, install, and upgrade kubernetes applications by automating the deployment of objects.
+
+To get started with helm view this link:https://helm.sh/docs/chart_template_guide/getting_started/[guide]
+
+View the example for more details
