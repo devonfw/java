@@ -92,10 +92,10 @@ dependencies { // <2>
 
 openApiGenerate {
     artifactId = "MyThaiApi-java-client"
-    groupId = "com.devonfw.devon4j.generated.client"
-    apiPackage = "com.devonfw.devon4j.generated.client.service"
-    modelPackage = "com.devonfw.devon4j.generated.client.model"
-    invokerPackage = "com.devonfw.devon4j.generated.client.handler"
+    groupId = "com.devonfw.generated.client"
+    apiPackage = "com.devonfw.generated.client.service"
+    modelPackage = "com.devonfw.generated.client.model"
+    invokerPackage = "com.devonfw.generated.client.handler"
     inputSpec = "${rootDir}/src/main/resources/MyThaiApi.yml" // <3>
     output = "${buildDir}/generated-sources/client"
     generatorName = "java" // <4>
@@ -149,10 +149,10 @@ Maven::
 						</goals>
 						<configuration>
 							<artifactId>MyThaiApi-java-client</artifactId>
-							<groupId>com.devonfw.devon4j.generated.client</groupId>
-							<apiPackage>com.devonfw.devon4j.generated.client.service</apiPackage>
-							<modelPackage>com.devonfw.devon4j.generated.client.model</modelPackage>
-							<invokerPackage>com.devonfw.devon4j.generated.client.handler</invokerPackage>
+							<groupId>com.devonfw.generated.client</groupId>
+							<apiPackage>com.devonfw.generated.client.service</apiPackage>
+							<modelPackage>com.devonfw.generated.client.model</modelPackage>
+							<invokerPackage>com.devonfw.generated.client.handler</invokerPackage>
 							<inputSpec>${project.basedir}/src/main/resources/MyThaiApi.yml</inputSpec>
 							<output>${project.build.directory}/auto-generated</output>
 							<generatorName>java</generatorName>
@@ -213,9 +213,9 @@ openApiGenerate {
     generatorName = "spring"
     library = "spring-boot" // <4>
     modelNameSuffix = "To"
-    apiPackage = "com.devonfw.devon4j.generated.api.service"
-    modelPackage = "com.devonfw.devon4j.generated.api.model"
-    invokerPackage = "com.devonfw.devon4j.generated.api.handler"
+    apiPackage = "com.devonfw.generated.api.service"
+    modelPackage = "com.devonfw.generated.api.model"
+    invokerPackage = "com.devonfw.generated.api.handler"
     configOptions = [
             sourceFolder      : "src/main/java",
             interfaceOnly     : "true",
@@ -273,9 +273,9 @@ Maven::
 							<generatorName>spring</generatorName>
 							<library>spring-boot</library>
 							<modelNameSuffix>To</modelNameSuffix>
-							<apiPackage>com.devonfw.devon4j.generated.api.service</apiPackage>
-							<modelPackage>com.devonfw.devon4j.generated.api.model</modelPackage>
-							<invokerPackage>com.devonfw.devon4j.generated.api.handler</invokerPackage>
+							<apiPackage>com.devonfw.generated.api.service</apiPackage>
+							<modelPackage>com.devonfw.generated.api.model</modelPackage>
+							<invokerPackage>com.devonfw.generated.api.handler</invokerPackage>
 							<configOptions>
 								<sourceFolder>src/java/main</sourceFolder>
 								<interfaceOnly>true</interfaceOnly>
