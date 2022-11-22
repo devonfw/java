@@ -53,9 +53,11 @@ Byte array will cause problems if BLOBs get large because the entire BLOB is loa
 * Always use link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/temporaltype[`TemporalType.TIMESTAMP`] with link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/temporal[`@Temporal`].
 * Mixing with other granularities causes problems when comparing one value to another.
 
-=== Always use lazy loading
+=== Consider the fetch type of relations
 
-Application are strongly advised to always use lazy loading. Always override the default of the relationship annotation by providing link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/manytomany#fetch()[`fetch = FetchType.LAZY`], even if this is the default already.
+When creating a relation between entities, the correct fetch type should be always considered for the use case. The difference between the two types eager and lazy loading is described link:https://www.baeldung.com/hibernate-lazy-eager-loading[here].
+Applications are strongly advised to use lazy loading, except it's 100% clear that eager loading is necessary in all cases. 
+Always override the default of the relationship annotation by providing the selected link:https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/manytomany#fetch()[FetchType] explicitly, to make it transparent for future developers.
 
 === Map enums to dedicated string
 
