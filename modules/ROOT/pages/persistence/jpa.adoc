@@ -63,9 +63,13 @@ Always override the default of the relationship annotation by providing the sele
 
 Mapping enums to their ordinal or name is fragile when it comes to code changes and refactoring. Define a dedicated link:https://www.baeldung.com/java-enum-values#adding-constructor[string in each enum value] for database representation. Enums then have to be treated as a custom datatype with a converter.
 
-=== Use single table inheritance
+=== Entity inheritance
 
-There are several ways to handle link:http://openjpa.apache.org/builds/1.0.4/apache-openjpa-1.0.4/docs/manual/jpa_overview_mapping_inher.html#jpa_overview_mapping_inher_tpc[inheritance in databases]. In most cases, 'single table' should be used, because it is usually the fastest way to do the mapping, as no joins are needed when retrieving, searching or persisting entities. 
+As a good practice it is recommended to avoid entity hierarchies at all where possible and otherwise to keep the hierarchy as small as possible.
+If an hierarchy in the entities is needed, JPA defines several inheritance mechanisms, that are described link:https://en.wikibooks.org/wiki/Java_Persistence/Inheritance[here]. 
+In most cases, `single table` is a good choice, because it is usually the fastest way to do the mapping, as no joins are needed when retrieving, searching or persisting entities. 
+Moreover it is rather simple and easy to understand. 
+One major disadvantage is that the this approach can lead to huge tables with a lot of null values.
 
 == Accessing the data
 
