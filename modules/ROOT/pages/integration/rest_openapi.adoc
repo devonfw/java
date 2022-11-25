@@ -13,7 +13,10 @@ This will help to build projects more Api driven, faster, consistent and in a de
 
 There are different types of generators, it is suggested to use the link:https://openapi-generator.tech/[OpenApi Generator].
 
-It's sugessted to use the link:https://openapi-generator.tech/docs/plugins/[maven/gradle plugin version] for the client and server. For the client, there is also a link:https://openapi-generator.tech/docs/installation[cli tool].
+It's sugessted to use the link:https://openapi-generator.tech/docs/plugins/[maven/gradle plugin version] for the client and server. 
+ 
+
+For the client, there is also a link:https://openapi-generator.tech/docs/installation[cli tool]. The advantage of this tool is the creation of the client as a library in a local or remote maven repository. This will improve build times because the client only has to be generated once. After running the generator, view the created README for more details about installation and usage.
 
 == Setup
 
