@@ -20,6 +20,7 @@
 ** xref:cross_cutting/dependency-injection.adoc[]
 ** xref:cross_cutting/exceptions.adoc[]
 ** xref:cross_cutting/i18n.adoc[]
+** xref:cross_cutting/oauth2_proxy.adoc[]
 ** xref:cross_cutting/logging.adoc[]
 ** Security
 *** xref:cross_cutting/security/authentication.adoc[]

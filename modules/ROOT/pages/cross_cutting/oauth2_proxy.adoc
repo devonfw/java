@@ -1,0 +1,63 @@
+:imagesdir: ../images
+= OAuth2 Proxy
+
+link:https://OAuth2-proxy.github.io/OAuth2-proxy/[OAuth2 proxy] is a link:https://en.wikipedia.org/wiki/Reverse_proxy[reverse proxy] that runs in front of your services to handle the complexity of link:https://developer.okta.com/blog/2019/10/21/illustrated-guide-to-OAuth-and-oidc[OpenID Connect / OAuth 2].
+Applications behind the proxy can be sure that requests to them have already been authorized. 
+The proxy supports a variety of different link:https://en.wikipedia.org/wiki/Identity_provider[identity providers] like Google, Github, Keycloak...
+
+== Setup
+
+The OAuth proxy can be deploy from a link:https://github.com/OAuth2-proxy/OAuth2-proxy/releases/latest[prebuilt binary], a prebuilt link:https://quay.io/repository/OAuth2-proxy/OAuth2-proxy?tab=tags&tag=latest[docker image] or by helm link:https://github.com/OAuth2-proxy/manifests[chart] inside a kubernetes cluster. It's recommended to use kubernetes.
+
+image::OAuth2_Proxy-RequestFlow.drawio.svg[Request Flow]
+
+1. Unauthorized request `http://localtest.me`
+2. Ingress redirect to OAuth2 proxy `http://OAuth2-proxy.default.svc.cluster.local`
+3. OAuth 2 proxy redirects users browser to OAuth screen `http://keycloak.localtest.me`
+4. OAuth screen request `http://keycloak.localtest.me`
+5. Keycloak ingress redirects to keycloak service
+6. After a successful login the users browser is redirected to a callback url with auth header
+7. Authorized Request
+8. Ingress redirect to OAuth 2 proxy
+
+
+=== Main ingress
+
+The main ingress only task is to redirect all requests from a host path like `localtest.me` to the OAuth2 proxy.
+
+=== Auth2 Proxy
+
+The OAuth 2 proxy is sitting between the user and the application. If the users starts a requests the proxy will check it for authorization headers or a authorization cookie. If the authorization is not provided the users browser is redirected to the OAuth screen of a configured identity provider. If the request is authorized the proxy will forward the request to a configured upstream.
+To set up the OAuth 2 proxy create a deployment with the docker image. Inside the deployment file link:https://OAuth2-proxy.github.io/OAuth2-proxy/docs/configuration/overview[configure] the OAuth proxy.
+TODO: Richard Linde details about configuration
+
+
+=== Keycloak 
+
+In this example link:https://www.keycloak.org/[keycloak] is used as identity provider. For more detail on keycloak see the devon documentation. 
+To deploy keycloak in the cluster it's recommended to use the helm chart from bitnami. To configure the keycloak deployment use a values.yaml file.
+
+----
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+helm upgrade --install keycloak bitnami/keycloak -f config/keyCloakValues.yaml
+----
+
+=== Spring Server
+
+In this example the secured application is a basic Spring Boot server with a simple API route to GET data.
+Because of the OAuth2 proxy the server doesn't need to use Spring security to protect the application, keeping it simple an manageable. 
+
+=== Keycloak ingress
+
+This ingress is created by the keycloak helm chart allowing a host like `keycloak.localtest.me` to be mapped to the keycloak service. This is important for setting up redirect urls in the OAuth2 proxy.
+
+
+=== Special configuration for local testing
+
+To get a link:https://en.wikipedia.org/wiki/Fully_qualified_domain_name[FQDN] without changing the host file the example is using the domain `localtest.me`, that will get resolve to `127.0.0.1` by a public DNS server.
+
+This created some problems.
+When trying to access the keycloak server from the proxy it is necessary to use the kubernetes internal url, because using the localtest url will always try to access the loopback device of the pod sending the request.
+
+This increased the complexity of the configuration, because the login url is different from the token issuer. To resolve this problem you have to enable skip-oidc-discovery and set all url manually.
