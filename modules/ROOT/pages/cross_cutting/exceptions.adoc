@@ -1,6 +1,15 @@
 :imagesdir: ../images
 = Exceptions
 
+[NOTE]
+====
+
+This article needs further clarification. Help the project by contributing.
+
+https://github.capgemini.com/CG-Europe-ABL/devonfw/issues/16
+
+====
+
 == Business exceptions
 
 === Use a common base class
@@ -9,3 +18,34 @@
 ** Should be inheriting `RuntimeException`
 ** Should store the cause `Exception`
 ** Should contain a reason enum. The enum is project individual and contains values like `Conflict`, `NotFound` and `IncorrectInput`. This enum can later be used to decide how to inform the user about the problem e.g. via HTTP status codes when building REST apis.
+
+
+== Exception handler
+* the central entry point for exceptions in the application
+* is annotated with `@ExceptionHandler` at each method which handles the exceptions
+* each method has a return value of `ResponseEntity<ErrorResponse>`
+* within the method, the values for HTTPStatus, ErrorCode, Message and UUID are set
+* the class is globally annotated with `@ControllerAdvice`
+* for each type of Exception there should be a handler method to managet the exception 
+
+Example code exception handler:
+[source,java]
+----
+@ControllerAdvice
+public class CustomControllerAdvice {
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(Exception ex) {
+        ...
+
+----
+
+== ErrorResponse class
+* `ErrorResponse`: The ErrorResponse class returns the error object to the client. 
+* mainly consists of constructors with a different number of parameters that provides the information about the class variables (message, HTTPStatus code etc.).
+
+== More information 
+
+https://www.tutorialspoint.com/spring_boot/spring_boot_exception_handling.htm[Spring Boot - Exception Handling (Tutorial),window=_blank]
+
+https://spring.io/blog/2013/11/01/exception-handling-in-spring-mvc[Official Documentation: Spring Boot Exception Handling, window=_blank]
