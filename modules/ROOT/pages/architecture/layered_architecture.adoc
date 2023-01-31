@@ -64,7 +64,7 @@ _A1 UseCases_ in the logic layer might depend on the interfaces from the domain 
 * A layer can [.underline]#never# depend on a layer above. 
 The dataaccess layer should never depend on the logic layer.
 * Layers should not be skipped. 
-The service layer should not depend on the dataacess layer directly.
+The service layer should not depend on the dataaccess layer directly.
 
 ===== Dependencies between components
 
