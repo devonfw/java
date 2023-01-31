@@ -36,7 +36,7 @@ Batch layer:: Exposes functionality to be used in batch-processes (e.g. mass imp
 
 Logic layer:: Contains the business logic.
 
-Domain layer:: The domain layer manages the domain entities. This usually includes their persistence.
+Dataaccess layer:: The dataaccess layer manages the entities including their storage and retrieval.
 
 ==== Front-end service
 
@@ -62,9 +62,9 @@ Inside the same component (e.g. _Component A1_) the following rules adhere:
 * Each layer can only depend on resources from the same layer or from the layer below. 
 _A1 UseCases_ in the logic layer might depend on the interfaces from the domain layer or have a dependency to another use-case from the same component in the logic layer.
 * A layer can [.underline]#never# depend on a layer above. 
-The domain layer should never depend on the logic layer.
+The dataaccess layer should never depend on the logic layer.
 * Layers should not be skipped. 
-The service layer should not depend on the domain layer directly.
+The service layer should not depend on the dataaccess layer directly.
 
 ===== Dependencies between components
 
@@ -77,8 +77,8 @@ For the next rules it is assumed that _Component A1_ is allowed to call _Compone
 * Only the logic layer can have dependencies on other use cases from other components, because it is a business dependency.
 The logic layer of _Component A1_ depends on the logic layer of _Component A2_.
 * The Service layer of _Component A1_ should [.underline]#not# have a dependency to any other layer in _Component A2_
-* The Logic Layer of _Component A1_ should [.underline]#not# have a dependency to the domain or the service layer in _Component A2_ 
-* The Domain Layer of _Component A1_ should [.underline]#not# have a dependency to any other layer in _Component A2_ 
+* The Logic Layer of _Component A1_ should [.underline]#not# have a dependency to the dataaccess or the service layer in _Component A2_ 
+* The Dataaccess Layer of _Component A1_ should [.underline]#not# have a dependency to any other layer in _Component A2_ 
 
 ===== Dependencies to external service
 
@@ -94,7 +94,7 @@ Other layer should [.underline]#never# expose their functionality to external se
 
 == Constraints and alternatives
 
-For services with a very limited number of use cases and exposed endpoints, that are also planned to stay small, the three layers might be an overhead. In such cases it might be an option to combine the logic and service layer. Logic and domain layers should never be combined.
+For services with a very limited number of use cases and exposed endpoints, that are also planned to stay small, the three layers might be an overhead. In such cases it might be an option to combine the logic and service layer. Logic and dataaccess layers should never be combined.
 
 For large modulith systems further rules and stricter divisions might be necessary. A possible way to handle this is to keep API and Implementation even stricter separated.
 
@@ -157,7 +157,7 @@ The `«artifact»` is typically the technical name of the application.
 
 | «layer» |
 The technical layers the code belongs to. The layers are described below.
-| `domain`
+| `dataaccess`
 
 | «detail» 
 | Depending on the size of the application it might make sense to further divide the layers.
@@ -182,7 +182,7 @@ For versioning of the APIs further sub-packages can be created.
 |`logic`
 |No details expected
 
-|`domain`
+|`dataaccess`
 |Use `repository` for repository and `dao` for DAOs. 
 Entities belong into `model`.
 
@@ -198,7 +198,7 @@ Check if common functionality might fit into other layers.
 ----
 «root»
 ├──.«component»
-|  ├──.domain
+|  ├──.dataaccess
 |  |  ├──.repository
 |  |  |  ├──.«BusinessObject»Repository
 |  |  |  └──.«BusinessObject»Fragment
@@ -219,7 +219,7 @@ Check if common functionality might fit into other layers.
 |           └──.model
 |              └──.«BusinessObject»Dto
 └──.general
-   └──.domain
+   └──.dataaccess
       └──.model
          └──.ApplicationPersistenceEntity
 ----
@@ -230,7 +230,7 @@ Check if common functionality might fit into other layers.
 ----
 com.devonfw.application.mts
 ├──.bookingmanagement
-|  ├──.domain
+|  ├──.dataaccess
 |  |  ├──.repository
 |  |  |  ├──.BookingRepository.java
 |  |  |  ├──.InvitedGuestRepository.java
@@ -252,7 +252,7 @@ com.devonfw.application.mts
 |     |  └──.TableCto.java
 |     └──.BookingManagementRestService.java
 ├──.dishmanagement
-|  ├──.domain
+|  ├──.dataaccess
 |  |  ├──.repository
 |  |  |  ├──.CategoryRepository.java
 |  |  |  ├──.DishRepository.java
@@ -282,7 +282,7 @@ com.devonfw.application.mts
    |     ├──.JWTAuthenticationFilter.java
    |     ├──.QrCodeService.java
    |     └──.ValidationService.java
-   ├──.domain
+   ├──.dataaccess
    |  ├──.repository
    |  |  └──.BinaryObjectRepository.java
    |  └──.model
