@@ -7,27 +7,47 @@ When doing performance optimization, it's important to keep the following rules 
 [quote,Donald E. Knuth]
 Premature optimization is the root of all evil.
 
-Before starting to optimize any database operation, it's important to analyse the root cause by measuring the execution times.
+Before starting to optimize any database operation, it's important to analyze the root cause by measuring the execution times.
 
-== Rule 1: The performance of a use case is proportional to the number of SQL statements it generates
+[TIP]
+====
+Take some time to remove the O/R mapping frameworks from your mind.
+Think about the native SQL you would write to do the task. 
+Finally, compare the SQLs with the actually produced ones and adjust them if necessary.
+====
 
-* Typical values of a query execution are `5 to 100 msec`
-* It has shown, that performance problems are in most cases the result of a high the number of repeated query executions (e.g. in loops) and not the queries themselfs
+== Rule 1: Minimize the number of SQL statements per transaction 
+
+* Do not repeat the same (SELECT) statement and instead reduce it to a single one (avoid N+1 problems).
+* It has shown, that performance problems are in most cases the result of a high the number of repeated query executions (e.g. in loops) and not the queries themselves
 * Before optimizing a single queries, check and if possible reduce the number of executions of it
 * In some rare cases the executionTime of query causes the problem and tuning the SQL or the DB is helpful
 * Always consider Rule 0 before applying any action
 
+[NOTE]
+====
+Typical values of a query execution are `5 to 100 msec`.
+====
 
 == Rule 2: The performance of a use case is the product of objects in a session with the number of flush operations
+
+[NOTE]
+====
+Only implement a flush if you're really sure what you're doing. 
+Manual flushes should be documented in any case.
+
+But remember that also ORM frameworks executes flushes.
+Depending of the implementation it might be that you're forcing hibernate to do more flush operations than necessary.
+====
 
 In case a Object Relational Mapper (like JPA) is used and a high number of objects are in the session, then the flush operations can become a problem.
 
 The default configuration read/write auto flush of JPA makes sure that prior of any query the current session is flushed, to ensure, that the query gets the latest updates from the DB.
 
-If there are big datasets in the session, the flush operation can take an relativ huge amount of time. E.g. in an analytics (read only) application with lots of data, the flush would be not necessary, becasuse no data was changed. Nonetheless, it flushes the session with all data prior to any other query.
+If there are big datasets in the session, the flush operation can take an relative huge amount of time. E.g. in an analytics (read only) application with lots of data, the flush would be not necessary, because no data was changed. Nonetheless, it flushes the session with all data prior to any other query.
 
 * In case the number of objects in the session is < 1000 there's usually not an issue
-* Check if the number of objects in the session is necessary, e.g. a missused eager loading
+* Check if the number of objects in the session is necessary, e.g. a misused eager loading
 * Check if the flush mode can be adjusted, as in the mentioned analytics application example
 * Always consider Rule 0 before applying any action
 
