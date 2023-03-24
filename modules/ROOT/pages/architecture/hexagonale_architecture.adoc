@@ -1,0 +1,48 @@
+// https://tree.nathanfriend.io/
+// Questions: If domain cannot access anything, how does the factory acess service to create a entity (for example using the postalcode service to get the user)
+// 
+----
+- application
+  - config
+      - Configuration.java
+  - core
+    - domain
+      - User.java
+      - AdressValueObject.java
+      - UserFactory.java
+    - usecase
+      - AddUserUc.java
+      - AddAddressUc.java
+    - service
+      - PostalFinderService.java
+    - ports
+      - StoreUserPort.java
+      - BroadcastUserPort.java
+      - PostalCodeFinderPort.java
+  - adapter
+    - in
+      - rest
+        - RestController.java
+        - model
+         - UserDto.java
+       - mapper
+         - UserRestMapper.java
+    - out
+      - jpa
+        - UserPersistenceAdapter.java
+        - model
+          - UserEntity.java
+          - AdressEntity.java
+        - mapper
+          - UserJpaMapper.java
+      - kafka
+        - UserBroadcastAdapter
+        - model
+          - UserDto.java
+        - mapper
+          - UserKafkaMapper.java
+      - rest
+       - PostalCodeAdapter.java
+       - model
+         - PostalCodeDto.java
+----
