@@ -1,48 +1,140 @@
-// https://tree.nathanfriend.io/
-// Questions: If domain cannot access anything, how does the factory acess service to create a entity (for example using the postalcode service to get the user)
-// 
+:imagesdir: ../images
+// Open Questions/Discussion: 
+// - If domain cannot access anything, how does the factory acess service to create a entity (for example using the postalcode service to get the user)
+// - Is everything considered in the structure or are there things we cannot handle currently?
+// - What about shared technical elements? (AOP for logging accross multiple rest adapters)
+// - How to organize mutliple modules in a modular monolith and what about shared stuff there? 
+// - Should we really name the adapters after the protocol or more speaking (e.g. reservation for a inbound adapter for reservation) 
+// - Is structurering core and adapters in packages enough or should we use gradle modules or java modules?
+
+// Todos:
+// - Create ADR (Architecture Design records)
+// - Mention that the structure can be made more lean at any time. Consider three case:
+//   - Complex application with great logic (Probably JPA and entities different, also a great core layer)
+//   - Application containing logic, but entities and JPA do not differ (potentially a case where the entities in Core can contain JPA specific annotations t avoid mapping)
+//   - Pure CRUD application (Leave out core)
+// - Add an ArchUnit example to make call options explicit for devs (and reusable)
+= Hexagonal Architecture
+
+Hexagonal architecture, also known as Ports and Adapters, is a software design pattern that promotes separation of concerns by organizing an application into a central core surrounded by external adapters. 
+The core contains the business logic and communicates with the external world via well-defined ports (interfaces). 
+Adapters implement these ports and handle the translation between the core's domain model and the specific technologies or protocols used by external systems.
+
+[[img-t-hexagonal-architecture]]
+.Hexagonal Architecture Reference
+image::hexagonal_component_architecture_overview.drawio.svg["devonfw hexagonal architecture blueprint",scaledwidth="80%",align="center"]
+// ----
+//Created the directory tree based on this list using https://tree.nathanfriend.io/
+// As the list is easier to maintain, try to do edits in the list structure, use the tool mentioned above and paste both in here:
+
+// - application
+//   - config
+//       - Configuration.java
+//   - core
+//     - domain
+//       - Customer.java
+//       - CustomerFactory.java
+//       - Reservation.java
+//       - Table.java
+//     - ports
+//       - StoreReservationPort.java
+//     - service
+//       - FindTableService.java --> diese logik Würde ich eher in einem RestaurantEntity abbilden
+//     - usecase
+//       - AddReservationUc.java
+//       - AddTableUc.java
+//   - adapter
+//     - in
+//       - rest --> Discussion point (why not more business drivem (what does it do))
+//         - RestController.java
+//         - model
+//          - ReservationDto.java
+//        - mapper
+//          - ReservationMapper.java
+//     - out
+//       - jpa
+//         - .java
+//         - model
+//           - ReservationEntity.java
+//           - TableEntity.java
+//         - mapper
+//           - ReservationJpaMapper.java
+//           - TableJpaMapper.java
+// ----
+[source,plaintext]
 ----
-- application
-  - config
-      - Configuration.java
-  - core
-    - domain
-      - User.java
-      - AdressValueObject.java
-      - UserFactory.java
-    - usecase
-      - AddUserUc.java
-      - AddAddressUc.java
-    - service
-      - PostalFinderService.java
-    - ports
-      - StoreUserPort.java
-      - BroadcastUserPort.java
-      - PostalCodeFinderPort.java
-  - adapter
-    - in
-      - rest
-        - RestController.java
-        - model
-         - UserDto.java
-       - mapper
-         - UserRestMapper.java
-    - out
-      - jpa
-        - UserPersistenceAdapter.java
-        - model
-          - UserEntity.java
-          - AdressEntity.java
-        - mapper
-          - UserJpaMapper.java
-      - kafka
-        - UserBroadcastAdapter
-        - model
-          - UserDto.java
-        - mapper
-          - UserKafkaMapper.java
-      - rest
-       - PostalCodeAdapter.java
-       - model
-         - PostalCodeDto.java
+application/
+├── config/
+│   └── Configuration.java
+├── core/
+│   ├── domain/
+│   │   ├── Customer.java
+│   │   ├── CustomerFactory.java
+│   │   ├── Reservation.java
+│   │   └── Table.java
+│   ├── ports/
+│   │   └── StoreReservationPort.java
+│   ├── service/
+│   │   └── FindTableService.java
+│   └── usecase/
+│       ├── AddReservationUc.java
+│       └── AddTableUc.java
+└── adapter/
+    ├── in/
+    │   └── rest
+    │       ├── RestController.java
+    │       ├── model/
+    │       │   └── ReservationDto.java
+    │       └── mapper/
+    │           └── ReservationMapper.java
+    └── out/
+        └── jpa/
+            ├── .java
+            ├── model/
+            │   ├── ReservationEntity.java
+            │   └── TableEntity.java
+            └── mapper/
+                ├── ReservationJpaMapper.java
+                └── TableJpaMapper.java
 ----
+
+[cols="1,1", options="header"]
+|===
+| Package | Description
+
+| core
+| The core contains the essential business logic, domain entities, and use cases. It focuses on implementing the main functionalities while remaining technology-agnostic. The core interacts with external components through well-defined interfaces called "ports," ensuring a clear separation of concerns and promoting flexibility, testability, and maintainability.
+
+| core.domain
+| The domain circle contains the entities and value objects of the business domain of the application. 
+Related Factories or Builders are located here as well. 
+The entities in our domain are usually rich. 
+
+| core.service
+| Services provide a reusable part of the applications business logic that is used by multiple use cases.
+
+| core.usecase
+| Use Cases are the main entrypoint of the applications core. They validate the given input and orchestrate the domain entities, services and ports to implement a Business Use Case.
+
+| core.port
+| Ports are interfaces, that are used by the core and should be implemented by an according adapter. Ports should not be technology specific. One big advantage of the hexagonal architecture is, that the adapters can be changed without changing the core and therefore, without touching the business logic.
+
+| adapter
+a| Adapters connect the application core to the surrounding context. They have the following tasks:
+
+* Implement a specific protocol to connect to the context. E.g REST, JDBC, MQTT, ...
+* Maintain a data model that is necessary to communicate with the context
+* Translate the domain model from the core to that model or vice versa
+* Handle protocol specific errors
+* Log the interaction with the surrounding context
+
+| adapter.in
+| Inbound adapters specify connection points for everything that can trigger the business logic. 
+That might be interfaces (HTML, RPC, etc), Message Consumers or schedulers for batch processing.
+Inside the adapters further packages are differentiating the protocols that is used (e.g. `.rest`). 
+
+| adapter.out
+| Outbound adapters define outgoing connections where the application actively interacts with context outside. 
+That can be database connections, file operations, API calls, message producing and many more.
+Inside the adapters further packages are differentiating the protocols that is used (e.g. `.jpa`).
+|===
