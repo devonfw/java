@@ -1,11 +1,10 @@
 :imagesdir: ../images
 // Open Questions/Discussion: 
-// - If domain cannot access anything, how does the factory acess service to create a entity (for example using the postalcode service to get the user)
 // - Is everything considered in the structure or are there things we cannot handle currently?
-// - What about shared technical elements? (AOP for logging accross multiple rest adapters)
-// - How to organize mutliple modules in a modular monolith and what about shared stuff there? 
+// - What about shared technical elements? (AOP for logging across multiple rest adapters)
+// - How to organize multiple modules in a modular monolith and what about shared stuff there? 
 // - Should we really name the adapters after the protocol or more speaking (e.g. reservation for a inbound adapter for reservation) 
-// - Is structurering core and adapters in packages enough or should we use gradle modules or java modules?
+// - Is structuring core and adapters in packages enough or should we use gradle modules or java modules?
 
 // Todos:
 // - Create ADR (Architecture Design records)
@@ -61,6 +60,7 @@ image::hexagonal_component_architecture_overview.drawio.svg["devonfw hexagonal a
 //           - ReservationJpaMapper.java
 //           - TableJpaMapper.java
 // ----
+
 [source,plaintext]
 ----
 application/
