@@ -36,15 +36,23 @@ image::hexagonal_component_architecture_overview.drawio.svg["devonfw hexagonal a
 //       - Reservation.java
 //       - Table.java
 //     - ports
-//       - StoreReservationPort.java
-//     - service
-//       - FindTableService.java --> diese logik Würde ich eher in einem RestaurantEntity abbilden
+//       - in
+//         - AddReservationPort.java
+//         - CancelReservationPort.java
+//         - AlterReservationPort.java
+//         - AddTablePort.java
+//         - RemoveTablePort.java
+//       - out
+//         - StoreReservationPort.java
 //     - usecase
 //       - AddReservationUc.java
+//       - ManageReservationUc.java
 //       - AddTableUc.java
+//     - [service]
+//       - [FindFreeTableService.java]
 //   - adapter
 //     - in
-//       - rest --> Discussion point (why not more business drivem (what does it do))
+//       - rest
 //         - RestController.java
 //         - model
 //          - ReservationDto.java
@@ -52,7 +60,7 @@ image::hexagonal_component_architecture_overview.drawio.svg["devonfw hexagonal a
 //          - ReservationMapper.java
 //     - out
 //       - jpa
-//         - .java
+//         - JpaAdapter.java
 //         - model
 //           - ReservationEntity.java
 //           - TableEntity.java
@@ -63,39 +71,49 @@ image::hexagonal_component_architecture_overview.drawio.svg["devonfw hexagonal a
 
 [source,plaintext]
 ----
-application/
-├── config/
-│   └── Configuration.java
-├── core/
-│   ├── domain/
-│   │   ├── Customer.java
-│   │   ├── CustomerFactory.java
-│   │   ├── Reservation.java
-│   │   └── Table.java
-│   ├── ports/
-│   │   └── StoreReservationPort.java
-│   ├── service/
-│   │   └── FindTableService.java
-│   └── usecase/
-│       ├── AddReservationUc.java
-│       └── AddTableUc.java
-└── adapter/
-    ├── in/
-    │   └── rest
-    │       ├── RestController.java
-    │       ├── model/
-    │       │   └── ReservationDto.java
-    │       └── mapper/
-    │           └── ReservationMapper.java
-    └── out/
-        └── jpa/
-            ├── .java
-            ├── model/
-            │   ├── ReservationEntity.java
-            │   └── TableEntity.java
-            └── mapper/
-                ├── ReservationJpaMapper.java
-                └── TableJpaMapper.java
+.
+└── application/
+    ├── config/
+    │   └── Configuration.java
+    │   └── Configuration.java
+    ├── core/
+    │   ├── domain/
+    │   │   ├── Customer.java
+    │   │   ├── CustomerFactory.java
+    │   │   ├── Reservation.java
+    │   │   └── Table.java
+    │   ├── ports/
+    │   │   ├── in/
+    │   │   │   ├── AddReservationPort.java
+    │   │   │   ├── CancelReservationPort.java
+    │   │   │   ├── AlterReservationPort.java
+    │   │   │   ├── AddTablePort.java
+    │   │   │   └── RemoveTablePort.java
+    │   │   └── out/
+    │   │       └── StoreReservationPort.java
+    │   ├── usecase/
+    │   │   ├── AddReservationUc.java
+    │   │   ├── ManageReservationUc.java
+    │   │   └── AddTableUc.java
+    │   └── [service]/
+    │       └── [FindFreeTableService.java]
+    └── adapter/
+        ├── in/
+        │   └── rest/
+        │       ├── RestController.java
+        │       ├── model/
+        │       │   └── ReservationDto.java
+        │       └── mapper/
+        │           └── ReservationMapper.java
+        └── out/
+            └── jpa/
+                ├── JpaAdapter.java
+                ├── model/
+                │   ├── ReservationEntity.java
+                │   └── TableEntity.java
+                └── mapper/
+                    ├── ReservationJpaMapper.java
+                    └── TableJpaMapper.java
 ----
 
 [cols="1,1", options="header"]
@@ -110,14 +128,49 @@ application/
 Related Factories or Builders are located here as well. 
 The entities in our domain are usually rich. 
 
-| core.service
-| Services provide a reusable part of the applications business logic that is used by multiple use cases.
-
 | core.usecase
-| Use Cases are the main entrypoint of the applications core. They validate the given input and orchestrate the domain entities, services and ports to implement a Business Use Case.
+| Use Cases are the main entrypoint of the applications core. 
+They validate the given input and orchestrate the domain entities, services and ports to implement a Business Use Case. 
+Usually a use case implementation should only include a small dedicated use case. 
+Depending of the size and adjacency of the use cases a grouping might make sense (e.g. ManageTableUc)
 
 | core.port
-| Ports are interfaces, that are used by the core and should be implemented by an according adapter. Ports should not be technology specific. One big advantage of the hexagonal architecture is, that the adapters can be changed without changing the core and therefore, without touching the business logic.
+| Ports are interfaces, that are used by the core and should be implemented by an according adapter. 
+Ports should not be technology specific. 
+One big advantage of the hexagonal architecture is, that the adapters can be changed without changing the core and therefore, without touching the business logic. 
+It needs to be distinguished between inbound ports and outbound ports.
+
+| core.port.in
+| Inbound ports are the entry of the application. 
+They provide interfaces that are called from inbound adapters and hide the actual implementation. 
+A proposal of structuring inbound ports is naming them like single use cases (e.g. CancelReservationPort). 
+Each port should only provide a single method.
+.Design Decision
+[%collapsible]
+====
+Inbound Ports are not as relevant for the hexagonal architecture as the outbound ports. 
+Outbound ports are used for the dependency inversion pattern. 
+For inbound ports could also call the use cases directly. 
+Therefore, an pragmatic alternative would be leaving out the inbound ports.
+
+It was decided to include the inbound ports nonetheless. They should implement single use cases that are offered. 
+Each interface should clearly mark the use case that contains only one method.
+Use cases from the interface might be grouped logically in the use case implementation class.
+====
+
+| core.port.out
+| Outbound ports decouple the interaction with external systems. 
+This might include other services that are called, files that are written, databases, event streaming and everything the application is actively triggering outside of the core.
+Outbound ports should describe the business need for the communication (e.g. StoreReservationPort). How this is then realized depends on the adapter that implements it. 
+This way a technology can be easily replaced. 
+For example storing the reservation could be be realized in a first prototype by writing the objects to a file. 
+Later it could be replaced with a database.
+The core logic would be untouched by that.
+
+| [optional] core.service
+| Services can be considered as business helper classes. 
+They provide a reusable part of the applications business logic that is used by multiple use cases or that helps to structure the application in a logical way.
+Services are optional as they can be used, when there's a real need. Usually a use case should contain the business logic.
 
 | adapter
 a| Adapters connect the application core to the surrounding context. They have the following tasks:
