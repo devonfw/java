@@ -186,16 +186,16 @@ They usually only provide fields to hold." <<Hombergs21>>
 ====
 
 Considering java as an object oriented language it feels natural to implement business logic inside the entities themselves. 
-In large scale application with mixed skilled people it's proposed to not use rich domain models.
-There are two reasons for this.
-First of all, the domain objects are returned to the adapters. 
+In large scale application we propose to not use rich domain models.
+There are two reasons for this:
+
+. the domain objects are returned to the adapters. 
 If they include business logic this is revealed and available outside of the core, which should not be the case.
 The answer to this problem could be an additional mapping, but this leads to a lot of unpractical mappings.
-Furthermore, adding the business logic to the domain entities spreads it across use cases, entities and services. 
+. adding the business logic to the domain entities spreads it across use cases, entities and services. 
 This makes the application more difficult to understand and harder to locate the place for new features or changes.
 
-It's proposed to implement the domain model as anemic entities.
-Use use cases and services to implement the business logic and interact with the domain models.
+Therefore, we propose to implement the domain model as anemic entities and make usage of use cases and services to implement the business logic and interact with the domain models.
 
 
 [bibliography]
