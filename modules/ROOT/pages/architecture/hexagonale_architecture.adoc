@@ -1,18 +1,4 @@
 :imagesdir: ../images
-// Open Questions/Discussion: 
-// - Is everything considered in the structure or are there things we cannot handle currently?
-// - What about shared technical elements? (AOP for logging across multiple rest adapters)
-// - How to organize multiple modules in a modular monolith and what about shared stuff there? 
-// - Should we really name the adapters after the protocol or more speaking (e.g. reservation for a inbound adapter for reservation) 
-// - Is structuring core and adapters in packages enough or should we use gradle modules or java modules?
-
-// Todos:
-// - Create ADR (Architecture Design records)
-// - Mention that the structure can be made more lean at any time. Consider three case:
-//   - Complex application with great logic (Probably JPA and entities different, also a great core layer)
-//   - Application containing logic, but entities and JPA do not differ (potentially a case where the entities in Core can contain JPA specific annotations t avoid mapping)
-//   - Pure CRUD application (Leave out core)
-// - Add an ArchUnit example to make call options explicit for devs (and reusable)
 = Hexagonal Architecture
 
 Hexagonal architecture, also known as Ports and Adapters, is a software design pattern that promotes separation of concerns by organizing an application into a central core surrounded by external adapters. 
@@ -74,7 +60,6 @@ image::hexagonal_component_architecture_overview.drawio.svg["devonfw hexagonal a
 .
 └── application/
     ├── config/
-    │   └── Configuration.java
     │   └── Configuration.java
     ├── core/
     │   ├── domain/
@@ -209,7 +194,7 @@ The answer to this problem could be an additional mapping, but this leads to a l
 Furthermore, adding the business logic to the domain entities spreads it across use cases, entities and services. 
 This makes the application more difficult to understand and harder to locate the place for new features or changes.
 
-It's proposed to implement the domain model as anemic entities using Java records.
+It's proposed to implement the domain model as anemic entities.
 Use use cases and services to implement the business logic and interact with the domain models.
 
 
