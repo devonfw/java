@@ -1,0 +1,104 @@
+= Unit Tests
+
+== Unit- and Unit-Integration-Tests Good Practices
+This articles focuses on Unit- and Unit-Integration-Tests.
+General test automation good practices can be found xref:cross_cutting/test_automation/test_automation.adoc[here].
+
+=== Use TDD to improve code and test quality
+https://testdriven.io/test-driven-development/[Test Driven Development (TDD)] is a software development method where tests are written first before the actual code.
+It leads to better tests and often to a better design, because the parts where the logic happens are better structured to allow easy testing.
+It also leads to better code, because the last step is a refactoring that can be performed safely because of the tests.
+
+=== Structure your tests with the AAA Pattern
+Structure your tests in three sections:
+
+* Arrange: bring your test object in the desired state.
+* Act: perform one action on your test object and capture the output, if there is any.
+* Assert: verify that your test object has acted in the expected way.
+
+Alternative names are given - when - then.
+
+The sections should be easily distinguishable. 
+This can be done by comments or simply by empty lines (clean code way).
+Which way is used is a matter of taste but do it in a consistent way.
+
+If there are no initializations, the arrange-section may be empty. The other two sections can never be empty.
+
+A detailed article about the AAA-pattern can be found https://freecontent.manning.com/making-better-unit-tests-part-1-the-aaa-pattern/[here].
+
+
+=== Use test coverage, but not as a measure for test quality
+A high test coverage does not mean you have good tests.
+But a low test coverage means that much of your code is completely untested.
+So, this is not an option.
+That means:
+
+* Set an adequate objective for code coverage (e.g. 80%); you may exclude packages that do not contain considerable logic.
+* Do not rely on coverage alone, but review tests like other code.
+
+=== Prefer delegation over inheritance
+Unit- and Unit-Integration tests may need cross-cutting functionality. 
+For this, prefer delegation over inheritance to avoid god-super-classes.
+Good places to put this kind of code can be realized and reused via the JUnit @Rule mechanism.
+
+=== Technology Stack
+* https://junit.org/junit5/[Junit 5] is the good de-facto standard for Java.
+
+* Keep the scope of Unit Tests small. This will require mocking of classes that a test object interacts with. 
+https://site.mockito.org/[Mockito] is a good choice for a mocking framework.
+
+* For mocking remote connections https://wiremock.org/[Wiremock] is a good choice.
+
+* Use https://assertj.github.io/doc/[AssertJ] to write good readable assertions that also provide valuable feedback in case a test fails.
+ Do not use legacy JUnit methods like `assertEquals` anymore.
+
+=== Example
+
+[tabs]
+====
+Simple good case::
++
+--
+[source, java]
+
+    @Test
+    void shouldCreateAValidCommonBookingToken() {
+        // arrange 
+        String validCommonToken = "CB_12345";
+        // act
+        BookingToken token = BookingToken.of(validCommonToken);
+        // assert         
+        assertThat(token.getBookingType()).isEqualTo(BookingType.COMMON);
+    }
+--
+Parameterized good cases::
++
+--
+[source, java]
+
+    @ParameterizedTest
+    @CsvSource({
+            "CB_, COMMON",
+            "GB_1234 ,INVITED"})
+    void shouldCreateValidCommonBookingTokens(String tokenStr, BookingType expectedType) {
+        // act 
+        BookingToken token = BookingToken.of(tokenStr);
+        // assert
+        assertThat(token.getToken()).isEqualTo(tokenStr);
+        assertThat(token.getBookingType()).isEqualTo(expectedType);
+    }
+--
+Parameterized error cases::
++
+--
+[source, java]
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = { "A", "CB1233", " ", "122323423423" })
+    void shouldDetectInvalidTokens(String token) {
+        // act & assert
+        assertThrows(WrongTokenException.class, () -> BookingToken.of(token));
+    }
+--
+====

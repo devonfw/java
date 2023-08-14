@@ -5,3 +5,4 @@
 * [ ] Establish the xref:../integration/rest_exception_handling.adoc[exception handling]
 * [ ] Enable xref:../cross_cutting/security/authentication.adoc[security features] for the API
 * [ ] Implement the necessary xref:../cross_cutting/tracing.adoc[tracing infrastructure]
+* [ ] Write a xref:../cross_cutting/test_automation/sub_system_tests.adoc[Subsysten/ API-test]

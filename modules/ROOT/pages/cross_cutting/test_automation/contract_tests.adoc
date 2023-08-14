@@ -1,0 +1,287 @@
+= Consumer Driven Contract (CDC) Tests
+
+Typical tool: link:https://docs.pact.io/[PACT]
+
+In distributed systems, for example with a microservice architecture in which the overall system is distributed across many different subsystems / microservices, the complexity migrates particularly to the integration of these services.
+A complete integration test is often expensive and not very practical, since all subsystems / microservices have to be started / maintained.
+Additional complexity arises from different versions of the services and their compatibility with one another.
+This is where Consumer Driven Contract (CDC) tests come into play.
+Starting from the consumer of an interface, they check the compatibility between provider and consumer without both having to run at the same time.
+The interface is represented by contracts that both sides commit to.
+CDCs can be used for synchronous interfaces such as REST, but also for event-based asynchronous interfaces.
+
+IMPORTANT: CDCs mainly test the integration between subsystems and their compatibility.
+They do not replace functional tests such as unit or (sub-)system tests.
+
+== Include validation on consumer side and event creation on provider side
+
+A central decision in the development of CDCs is the level of integration, i.e. how much is tested on the consumer and provider side.
+
+The recommendation for the consumer is very clear here that at least the validation of the input is tested.
+Business logic, database connections or other external systems should be mocked.
+This ensures that the input/event is at least valid and can be processed.
+
+It is quite similar on the provider side, because databases or other systems should also be mocked there.
+The creation of the input / the event should also go through part of the logic here and not be created completely synthetically.
+
+== Verify synchronous communication with PACT
+
+As an example for this section, we use two microservices in a system for bets on sport tournaments.
+The provider offers a REST API for information about scheduled matches (teams, date, stadium, ...).
+The consumer needs the teams of the match for a given id.
+
+Consumer services are the initiators of CDC tests. 
+They specify the contract they need to work with responses from the provider and implement tests to make sure that they can really handle what comes back.
+
+=== Only specify in the contract what the consumer app really needs
+Even if you know that the provider returns more attributes than you need, do not specify them in the contract.
+Otherwise you would unnecessarily limit what the provider can easily change.
+
+Example consumer contract with happy flow response::
++
+--
+[source, java]
+@ExtendWith(PactConsumerTestExt.class)
+@PactTestFor(providerName = "schedule", port = "7080")
+@SpringBootTest( properties = {"h2.tcp.enabled=false"})
+public class ScheduleConsumerTest {
+    @Pact(consumer = "bet", provider = "schedule")
+    public RequestResponsePact matchExists(PactDslWithProvider builder) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        return builder
+                .given("match with id 1 exists")
+                .uponReceiving("request to return match with id")
+                .path("/match/1")
+                .method("GET")
+                .willRespondWith()
+                .status(200)
+                .headers(headers)
+                .body(new PactDslJsonBody()
+                        .numberValue("matchId", 1)
+                        .stringMatcher("hometeam", "[A-Z]{3}", "POR")
+                        .stringMatcher("foreignteam", "[A-Z]{3}", "GER")
+                )
+                .toPact();
+    }
+    ...
+
+--
+
+=== Specify good cases and bad cases using provider states
+Even if you focus on data structures that are returned, don't forget that there can be error scenarios that require a contract.
+The "given" part in PACT allows specifying different states of the provider.
+Each state will produce a different result.
+The provider states are what consumer and provider need to discuss and agree on.
+
+Example consumer contract for an error case with other provider state::
++
+--
+[source, java]
+    @Pact(consumer = "bet", provider = "schedule")
+    public RequestResponsePact matchDoesNotExist(PactDslWithProvider builder) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        return builder
+                .given("match with id 2 does not exist")
+                .uponReceiving("request to return match with id")
+                .path("/match/2")
+                .method("GET")
+                .willRespondWith()
+                .status(400)
+                .headers(headers)
+                .toPact();
+    }
+
+--
+
+=== Implement states at provider side without complicated setup like database
+The provider only needs to implement the preconditions needed for the provider states. 
+The functionality itself is implemented by the provider anyway.
+PACT will simply call the API.
+
+Example provider side implementation::
++
+--
+[source, java]
+@ExtendWith(SpringExtension.class)
+@Provider("schedule")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+        properties = {"server.port=7088"})
+public class ScheduleProviderTest {
+    @MockBean
+    private MatchRepository matchRepository;
+    @TestTemplate
+    @ExtendWith(PactVerificationInvocationContextProvider.class)
+    void pactVerificationTestTemplate(PactVerificationContext context) {
+        context.verifyInteraction();
+    }
+    @State("match with id 1 exists")
+    public void match1Exists() {
+        Match match = new Match();
+        match.setForeignteam(Participant.BEL);
+        match.setHometeam(Participant.GER);
+        match.setStarttime(Instant.now());
+        match.setId(1L);
+        match.setStadium(Stadium.CAMP_NOU);
+        Mockito.when(matchRepository.findById(1L)).thenReturn(Optional.of(match));
+    }
+    @State("match with id 2 does not exist")
+    public void match2doesNotExist() {
+        Mockito.when(matchRepository.findById(2L)).thenReturn(Optional.empty());
+    }
+}
+
+--
+
+=== Make sure that the consumer app really understands provider messages
+The main focus of CDC tests is to make sure that the provider does not break the contract.
+But to be really sure that the communication works, the receiving part needs to be checked as well.
+
+Example contract verification at consumer side::
++
+--
+[source, java]
+@ExtendWith(PactConsumerTestExt.class)
+@PactTestFor(providerName = "spielplan", port = "7080")
+@SpringBootTest( properties = {"h2.tcp.enabled=false"})
+public class ScheduleConsumerTest {
+    @Autowired
+    private SpielplanClient spielplanClient;
+    // specify pacts
+    ...
+    // verify pact consuming
+    @Test
+    @PactTestFor(pactMethod = "matchExists")
+    void verifyCaseMatchExists() {
+        Optional<MatchTo> match = spielplanClient.findMatch(1);
+        Assertions.assertThat(match.isPresent()).isTrue();
+    }
+    @Test
+    @PactTestFor(pactMethod = "matchDoesNotExist")
+    void verifyCaseMatchDoesNorExist() {
+        Optional<MatchTo> match = spielplanClient.findMatch(2);
+        Assertions.assertThat(match.isPresent()).isFalse();
+    }
+}
+
+--
+
+== Verify event-based communication with PACT
+Helper: link:https://github.com/embeddedkafka/embedded-kafka[Embedded Kafka] (for provider side)
+
+As described at the beginning, asynchronous event-based interfaces can also be tested with CDCs or PACT as a framework.
+
+The following example shows the communication between a cart management system as a provider and the warehouse management system as a consumer with an event that is emitted when the cart is checked out.
+
+The test begins on the consumer side, in our example with the warehouse management system.
+First, the contract / PACT is described here by defining which event, with which content and which metadata is expected.
+The test then includes the verification and logic on the consumer side with exactly this event.
+This ensures that the event defined in the contract can also be processed error-free on the consumer side.
+Note that at this point, neither the other system nor an event broker are involved, so the test can be run in complete isolation.
+
+Example for consumer test::
++
+--
+[source, java]
+@PactConsumerTest
+@PactTestFor(providerName = "CartMgmtSrv", pactVersion = PactSpecVersion.V3)
+public class ProductEventConsumerPactTest {
+    @Pact(consumer = "WarehouseMgmtSrv")
+    public MessagePact createPactForCartCheckedOut(MessagePactBuilder builder) {
+        return builder
+                .given("CartCheckedOutSimple")
+                .expectsToReceive("CartCheckedOut")
+                .withContent(createCartCheckedOutJsonBody())
+                .withMetadata(createCartCheckedOutHeader())
+                .toPact();
+    }
+    @Test
+    @PactTestFor(pactMethod = "createPactForCartCheckedOut", providerType = ProviderType.ASYNCH)
+    void testCartCheckedOutSimple(final MessagePact messagePact) {
+        // given
+        final String json = messagePact.getMessages().get(0).contentsAsString();
+        // call validation logic in order to verify valid json input
+    }
+    private PactDslJsonBody createCartCheckedOutJsonBody() {
+        return new PactDslJsonBody()
+                .uuid("cartId")
+                .stringType("username", "Chuck Norris")
+                .date("checkoutDate")
+                .eachLike("products")
+                .uuid("productId")
+                .integerType("amount")
+                .asBody();
+    }
+    private Map<String, Object> createCartCheckedOutHeader() {
+        final Map<String, Object> headers = new HashMap<>();
+        headers.put("event-type", "cartCheckedOut");
+        return headers;
+    }
+}
+--
+
+After the contract has been created, it must now be ensured on the provider side that the generated events correspond to it.
+So whether in our example the correct events are generated when the cart is checked out.
+For this purpose, the state is prepared in the form of test data and mocks.
+
+In the actual test on the provider side, the respective service method that generates the respective event is now triggered.
+Depending on the technical setup, the next step is to collect the generated event from the event broker and make it available for provider verification.
+This test thus ensures that the correct events are generated by the provider assuming the state.
+By using embedded Kafka, these tests can also be run completely isolated without additional systems.
+The returned `MessageAndMetadata` is PACT-internally used for verification against the contract.
+
+Example for provider test::
++
+--
+[source, java]
+@Provider("CartMgmtSrv")
+@Consumer("WarehouseMgmtSrv")
+@PactBroker(url = "https://...")
+public class CartCheckedOutProviderPactTest {
+    @TestTemplate
+    @ExtendWith(PactVerificationInvocationContextProvider.class)
+    void pactVerificationTestTemplate(PactVerificationContext context) {
+        context.verifyInteraction();
+    }
+    @BeforeEach
+    void before(PactVerificationContext context){
+        context.setTarget(new MessageTestTarget());
+    }
+    @State("CartCheckedOutSimple")
+    public void setupCartCheckedOutSimple(){
+        // Setup testdata, mocks ...
+    }
+    @PactVerifyProvider("CartCheckedOut")
+    MessageAndMetadata verifyMessageForCartCheckedOut() {
+        // when
+        // Trigger service method with testdata and mock configuration from state
+        // then
+        // Extract output of the service e.g. messages in embedded Kafka
+        final byte[] message = // event broker specific logic for determining the body of the message
+        final Map<String, Object> headers = // event broker specific logic for determining the header of the message
+        return new MessageAndMetadata(message, headers);  // this will be used for provider verification
+    }
+}
+--
+
+== Use a PACT broker for exchanging your contracts
+PACT contracts must be exchanged between consumer and provider.
+In the above example, after the test has been carried out on the consumer side, a PACT file is created that contains all the necessary information about the contract.
+This must then be handed over to the provider and the verification carried out there.
+    A manual exchange of the PACT files is impractically, especially in the case of larger contexts and integration into the CI/CD solution.
+Instead, a link:https://docs.pact.io/pact_broker[PACT broker] should be used, which is responsible for the exchange and administration of the contracts.
+The PACT broker can be used for both synchronous and asynchronous communication.
+
+== Integrate PACT into your CI/CD pipelines for safe deployments
+The main goal of CDCs is to verify whether the consumer and provider of an interface are compatible with each other without having to run and test them integratively at the same time.
+It is therefore advisable to incorporate this check into CI/CD pipelines and to secure possible deployments.
+This requires an automated exchange of the PACT contracts, our recommendation is the use of a PACT broker (see previous section).
+
+An important prerequisite is that the PACT tests are executed in the pipelines of the various services.
+In the next step, the PACT broker should be integrated by publishing the PACT contracts in the broker on the consumer side.
+If the test is now executed on the provider side, the corresponding contracts must be determined by the broker and the result must be pushed after execution.
+The PACT Broker thus has a complete overview of which versions of provider and consumer are compatible with each other.
+Now that it can be automatically ensured whether there is compatibility, the `can-i-deploy` flag can be integrated into the PR pipelines, which controls whether the changes to the PR are compatible with the existing interfaces.
+
+The official documentation for PACT specifies various link:https://docs.pact.io/pact_nirvana[steps] how PACT can be optimally integrated into the CI/CD environment.

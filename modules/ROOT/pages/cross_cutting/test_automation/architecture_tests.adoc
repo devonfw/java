@@ -1,0 +1,56 @@
+= Architecture Tests
+Typical tool: ArchUnit
+
+The verification of architecture guidelines requires that basic naming, package structure and dependencies are checked.
+This should also be fully automated like the unit tests mentioned above.
+link:https://www.archunit.org/[ArchUnit] is a testing framework that is based on JUnit 5 and enables naming, dependencies and other coding styles to be checked.
+
+The following code example shows a test that checks the naming of the domain entities.
+The biolerplate code can be reduced to a minimum with appropriate annotations such as `@AnalyzeClasses` and `@ArchTest`.
+
+Naming convention test::
++
+--
+[source, java]
+@AnalyzeClasses(packages = "com.capgemini.component")
+public class NamingRuleTest {
+    @ArchTest
+    static ArchRule entities_named_correctly =
+            classes()
+                    .that().resideInAPackage("..domain.model..")
+                    .and().areNotInterfaces()
+                    .should().haveSimpleNameEndingWith("Entity");
+}
+--
+
+ArchUnit also offers support for well-known high-level architectures such as xref:architecture/layered_architecture.adoc[layered architecture] or onion architecture (see also hexagonal architecture).
+
+Here, only the packages of the layers and the dependencies of the layers have to be defined. The following example shows this as an example.
+
+Layered Architecture Test::
++
+--
+[source, java]
+
+@AnalyzeClasses(packages = "com.capgemini.component")
+public class DependencyRuleTest {
+    @ArchTest
+    static ArchRule layered_architecture_check =
+            layeredArchitecture().consideringAllDependencies()
+                    .layer("Service").definedBy("..service..")
+                    .layer("Logic").definedBy("..logic..")
+                    .layer("Domain").definedBy("..domain..")
+                    .whereLayer("Service").mayNotBeAccessedByAnyLayer()
+                    .whereLayer("Logic").mayOnlyBeAccessedByLayers("Service")
+                    .whereLayer("Domain").mayOnlyBeAccessedByLayers("Logic");
+}
+--
+
+You can find much more examples for your need link:https://github.com/TNG/ArchUnit-Examples/tree/main/example-junit5/src/test/java/com/tngtech/archunit/exampletest/junit5[here].
+
+It should be noted that ArchUnit provides a good check of architectural guidelines within a module.
+Especially with larger applications, it makes sense to use Maven or Gradle modules to control dependencies and to structure the application.
+In this case, alternative means such as link:https://www.hello2morrow.com/products/sonargraph/architect9[Sonargraph] should be considered.
+
+== References
+* https://github.com/devonfw-sample/archunit

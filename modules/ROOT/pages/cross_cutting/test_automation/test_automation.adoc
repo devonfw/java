@@ -1,0 +1,85 @@
+= Test Automation
+
+Developing in an agile way has become normal in our projects. 
+Having a quality assured deliverable product at any time or at least at the end of each sprint can only be achieved with efficient test automation. 
+This section provides good practices for this.
+
+== Understand test automation dimensions
+There is not one set of rules and tools for test automation.
+Typically, there are the following *integration levels* with different test scopes:
+
+* *Unit-Tests*: 
+test for smallest testable unit; 
+not more than one class; 
+all other classes mocked; 
+especially no access to database.
+* *(Unit-Integration-Tests)*: 
+closely rated units are tested together;
+outside scope mocked;
+no access to database; 
+often not considered as an extra level, but as part of Unit-Tests.
+* *Subsystem-Tests (aka API-Tests or Service-Tests)*: 
+test for a fully integrated deployable part of the system; 
+usually with database (can be in memory); 
+API calls not via Java methods, but from the outside, e.g. REST; 
+external systems or system parts are mocked.
+* *System-Tests (aka UI-Tests)*: 
+tests for a fully integrated system with backend and frontend; 
+usually with database; 
+external systems are mocked.
+* *System-Integration-Tests*: 
+tests for multiple fully integrated systems together; 
+from a technical perspective they can be treated like System Tests, only the organization of such tests is much more complicated.
+
+In addition to the integration levels test automation can be done for different *quality characteristics* of a software product (e.g. functionality, performance, security, ...). 
+
+== General good practices
+
+=== Utilize different integration levels
+
+* Apply the https://martinfowler.com/articles/practical-test-pyramid.html#TheTestPyramid[test pyramid] for test intensity on different levels, i.e. aim for many Unit-Tests for fast feedback and only few UI-Tests to ensure integration. 
+* For microservices the complexity is often in the external communication rather than in the internal logic. In these situations consider a test honeycomb like proposed by https://engineering.atspotify.com/2018/01/testing-of-microservices/[Spotify]
+* Use Unit-Tests and Unit-Integration-Tests for business-logic, complex mappings and exceptional flows that need mocking.
+* Adapters and other coordinators (i.e., code that mainly maps and routes) can be tested implicitly in Subsystem-Tests.
+
+=== Apply FIRST principle
+Implement https://dzone.com/articles/first-principles-solid-rules-for-tests[FIRST] tests (a must for Unit-Tests):
+
+* **F**ast
+* **I**solated (test must be independent of each other)
+* **R**epeatable
+* **S**elf-Validating (no test without assertion)
+* **T**horough (cover not only the happy path)
+
+=== Stating the obvious, because reality is often different
+
+* Decide what to test before coding. 
+Tests should have a clear goal that should also be documented.
+* Test code shall NOT be seen as second class code. 
+Consider design, architecture and code-style also for your test code.
+* Use continuous integration and establish that the entire team wants to have clean builds and running tests.
+
+=== Design for testability
+Architecture should support testability.
+If testing feels hard, it is worth to reconsider your design.
+Some general rules:
+
+* Take *separation of concerns* seriously.
+If your business logic is well structured and free of technical code, it can be tested easily.
+* Apply *information hiding*.
+If classes exchange huge data structures even if only few attributes are needed, your test complexity explodes.
+* Use *dependency injection*. 
+This allows mocking of external functionality.
+ 
+
+== Specific good practices
+
+For *functional* tests see:
+
+* xref:cross_cutting/test_automation/unit_tests.adoc[*Unit- and Unit-Integration-Tests*]
+* xref:cross_cutting/test_automation/sub_system_tests.adoc[*Functional Subsystem- and System-Tests (API + UI)*]
+
+For *non-functional* tests see:
+
+* xref:cross_cutting/test_automation/unit_tests.adoc[*Consumer-Driven-Contract-Tests*]
+* xref:cross_cutting/test_automation/architecture_tests.adoc[*Architecture-Tests*]
