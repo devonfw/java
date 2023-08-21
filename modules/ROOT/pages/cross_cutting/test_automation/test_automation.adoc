@@ -14,7 +14,7 @@ not more than one class;
 all other classes mocked; 
 especially no access to database.
 * *(Unit-Integration-Tests)*: 
-closely rated units are tested together;
+closely related units are tested together;
 outside scope mocked;
 no access to database; 
 often not considered as an extra level, but as part of Unit-Tests.

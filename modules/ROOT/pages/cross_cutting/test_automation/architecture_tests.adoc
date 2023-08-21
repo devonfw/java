@@ -12,7 +12,7 @@ Naming convention test::
 +
 --
 [source, java]
-@AnalyzeClasses(packages = "com.capgemini.component")
+@AnalyzeClasses(packages = "com.myapp.component")
 public class NamingRuleTest {
     @ArchTest
     static ArchRule entities_named_correctly =
@@ -32,7 +32,7 @@ Layered Architecture Test::
 --
 [source, java]
 
-@AnalyzeClasses(packages = "com.capgemini.component")
+@AnalyzeClasses(packages = "com.myapp.component")
 public class DependencyRuleTest {
     @ArchTest
     static ArchRule layered_architecture_check =

@@ -5,7 +5,7 @@ This articles focuses on Unit- and Unit-Integration-Tests.
 General test automation good practices can be found xref:cross_cutting/test_automation/test_automation.adoc[here].
 
 === Use TDD to improve code and test quality
-https://testdriven.io/test-driven-development/[Test Driven Development (TDD)] is a software development method where tests are written first before the actual code.
+https://testdriven.io/test-driven-development/[Test Driven Development (TDD)] is a software development method where tests are written first before the actual code in cycles "make it red, make it green, make it clean".
 It leads to better tests and often to a better design, because the parts where the logic happens are better structured to allow easy testing.
 It also leads to better code, because the last step is a refactoring that can be performed safely because of the tests.
 

@@ -292,6 +292,7 @@ Web development often works with libraries or patterns of re-usable UI component
 They change over time.  
 Like the motivation for the page object pattern, you don't want to change all tests or all page objects, if the internal structure of such a component changes. 
 So, similar to page objects, create "widget objects" that encapsulate the access to common UI components.
+These widget objects are then used in page objects.
 
 If you use Selenium, you need to expect https://www.baeldung.com/selenium-staleelementreferenceexception[StaleElementReferenceExceptions].
 So, you should not save a reference to a WebElement in your widget object.
