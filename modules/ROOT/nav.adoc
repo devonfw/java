@@ -28,6 +28,11 @@
 *** xref:cross_cutting/security/cors.adoc[]
 *** xref:cross_cutting/security/csrf.adoc[]
 ** xref:cross_cutting/tracing.adoc[]
+** xref:cross_cutting/test_automation/test_automation.adoc[]
+*** xref:cross_cutting/test_automation/unit_tests.adoc[]
+*** xref:cross_cutting/test_automation/sub_system_tests.adoc[]
+*** xref:cross_cutting/test_automation/contract_tests.adoc[]
+*** xref:cross_cutting/test_automation/architecture_tests.adoc[]
 
 * Examples
 ** xref:examples/my-thai-star.adoc[]
