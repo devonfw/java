@@ -194,6 +194,169 @@ This makes the application more difficult to understand and harder to locate the
 
 Therefore, we propose to implement the domain model as anemic entities and make usage of use cases and services to implement the business logic and interact with the domain models.
 
+== Module-based hexagonal component architecture
+The previously described approach of structuring using package structures is particularly suitable for lightweight and smaller applications.
+
+For larger applications, it makes sense to additionally implement the division using Maven or Gradle modules.
+This has the advantage that the application core of the hexagon remains completely without special technical frameworks such as JPA.
+As a result, it is technically not possible to use these functions in the core, which permanently leads to a "cleaner" core.
+
+//[[img-t-hexagonal-architecture-module]]
+//.Module-based hexagonal component architecture
+//image::hexagonal_component_architecture_modules.drawio.svg["devonfw hexagonal architecture module",scaledwidth="80%",align="center"]
+
+The division into modules looks like this:
+
+[source,plaintext]
+----
+application A1
+├── bootstrap (module)
+└── component C1 (module)
+    ├── core (module)
+    │   ├── domain
+    │   ├── port
+    │   │   ├── in
+    │   │   └── out
+    │   ├── usecase
+    │   └── service (optional)
+    └── adapter (module)
+        ├── in
+        │   └── web
+        │       └── (analog with packages)
+        └── out
+            └── repository
+                └── (analog with packages)
+----
+
+At the main level of the application there is the Bootstrap Module, which in Spring contains, for example, the configurations and SpringBootApplication.
+This module provides the starting point of the application and at the same time has a dependency on all cores and adapters of the business components.
+The business components, of which there can be any number, are also defined as modules at the main level.
+In the first step, we only assume one business module.
+This is divided into both the core module and the adapter module.
+In this way, core and adapter can define different dependencies and the core remains free of technical frameworks.
+
+The adapters in turn are divided into `in` and `out` adapters as in the package structure described above.
+However, no division into modules is recommended here, but instead exclusively into packages.
+A division here into modules increases the complexity significantly and also makes the expansion of new adapters much more complex, as these also have to be made known to the bootstrap module.
+With a large number of adapters and a high number of different dependencies, a tradeoff is to further divide the in and out adapters into modules.
+However, the recommendation here is to initially use packages.
+
+The management of dependencies should aim to define them as far "down" as possible.
+This means in particular that technical dependencies are always defined in the adapters.
+In order to keep versions consistent if possible, dependency management in the master pom can be used in Maven.
+The advantage of this is that the version only needs to be defined at the main level and does not need to be specified in every adapter pom.
+
+For internal dependencies it is necessary that the adapter has access to the core.
+Under no circumstances should there be a dependency from the core to the adapter.
+This would mean that fundamental aspects of the hexagonal architecture could be undermined and technical frameworks could also be used in the core.
+However, this also makes it necessary for dependency inversion to be used, especially for the outgoing adapters.
+This means that the out adapter is injected as an interface in the core, and the DI framework such as Spring or Quarkus then determines a suitable implementation.
+This approach makes it possible to access the out adapters without having to have a dependency.
+
+
+NOTE: In case you are using Quarkus environment the dependency inversion is not possible out of the box.
+That means that outgoing ports cannot injected as expected which causes errors during application start.
+In that case you can inject outgoing ports with `Instance<YourOutgoingPort>` which decouples the injection process.
+
+=== Multiple business components in modulithic high-level architecture
+
+So far we have assumed one business component and therefore also one module that includes core and adapter.
+As functional complexity increases, additional business components/modules are added.
+
+The modulith approach is particularly useful if:
+
+* the scaling requirements of the functional components are similar
+* additional complexity due to communication between services is (currently) not desired
+
+For new functional components, a new module must be added at the main level.
+Its substructure is analogous to the module described previously.
+This module must also be added as a dependency in the bootstrap module.
+
+[[img-t-hexagonal-architecture-modules]]
+.Module-based hexagonal component architecture with multiple modules
+image::hexagonal_component_architecture_modules2.drawio.svg["devonfw hexagonal architecture modules",scaledwidth="80%",align="center"]
+
+A crucial aspect of several business components is their communication with each other.
+For example, it is necessary for business component C1 to communicate with component C2.
+For this you have to follow these steps:
+
+* a Maven dependency from adapter C1 to adapter C2 need to be added
+* an `JVM In adapter` is created in component C2, which provides an interface, defines transport objects (TO) and enables these TOs to be mapped to the domain objects in the core of component C2.
+* an `JVM out adapter` is created in component C1, which maps the domain objects from the core of component C1 into a transport object (defined in adapter C2, see previous step) and then calls the interface of adapter C2.
+
+[source,plaintext]
+----
+application A1
+├── bootstrap (module)
+├── component C1 (module)
+│   ├── core (module)
+│   │   └── ...
+│   └── adapter (module)
+│       ├── in
+│       │   └── web
+│       │       └── ...
+│       └── out
+│           ├── repository
+│           │   └── ...
+│           └── jvm
+│               └── component C2
+│                   ├── mapper
+│                   │   └── BookingMapper.java
+│                   └── BookingComponentC1OutAdapter.java
+└── component C2 (module)
+    ├── core (module)
+    │   └── ...
+    └── adapter (module)
+        ├── in
+        │   ├── event
+        │   │   └── ...
+        │   └── jvm
+        │       └── component C1
+        │           ├── model
+        │           │   └── BookingUpdateDto.java
+        │           └── BookingComponentC1InAdapter.java
+        └── out
+            └── repository
+                └── ...
+----
+
+In this way, the two business components can communicate with each other within a modular architecture.
+At first glance, this seems complex and may involve overhead, since, for example, two mappings have to be implemented.
+However, this is deliberately chosen because, on the one hand, it means that communication between business components is used consciously and only where really necessary.
+On the other hand, these adapters represent a predetermined breaking point for later division.
+More on this in the next section.
+
+=== Extract business components into microservices
+
+Increasing technical complexity or changing scaling requirements may make it necessary to (partially) convert the existing module structure into a microservice architecture over time.
+The previously selected structure of the hexagonal architecture and the explicit communication via JVM adapters enable such a transformation with relatively little effort.
+The decisive advantage is that communication takes place beforehand via firmly defined interfaces.
+These now have to be switched from a communication technology based purely on JVM means to a communication technology.
+
+[[img-t-hexagonal-architecture-microservices]]
+.Module-based hexagonal component architecture with microservices
+image::hexagonal_component_architecture_microservices.drawio.svg["devonfw hexagonal architecture microservices",scaledwidth="80%",align="center"]
+
+
+Based on the previous example, business components C1 and C2 should now be divided into separate microservices.
+The transformation includes the following steps:
+
+1. Create a new application A2 with module structure as described previously with the Bootstap module (and no business component yet).
+2. Remove business component C2 from the existing application A1 and transfer it to application A2 created in the previous step.
+3. Adjustment of the Maven dependencies analogous to the specifications described previously.
+Additional adapter dependencies, for example for REST or event-based communication.
+4. Reimplementation of the previous JVM adapters with the new communication technology.
+This also means that there is no uniform Transfer Object (TO), but this must be defined on both the outgoing and incoming sides.
+
+After the transformation has been completed, the two business components are separated into two applications / microservices.
+
+NOTE: It is important to note that this only highlights the benefits of a module-based hexagonal architecture and how it can be transformed into microservices.
+During the transition, a variety of other aspects such as distributed logging and tracing, resilient communication or distributed transactions must be taken into account.
+These will not be considered further here and are independent of the backend architecture chosen.
+
+Of course, a combination of the options mentioned above (package-based, module-based, microservice-based) is also possible.
+However, the recommendation is that, especially in larger contexts with several business components, at least modules (Maven or Gradle) are used and communication is carried out via adapters.
+This increases maintainability permanently and also enables later transformation into microservices.
 
 [bibliography]
 == Bibliography
