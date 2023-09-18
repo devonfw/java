@@ -36,14 +36,14 @@ image::hexagonal_component_architecture_overview.drawio.svg["devonfw hexagonal a
 //       - [FindFreeTableService.java]
 //   - adapter
 //     - in
-//       - rest
+//       - web
 //         - RestController.java
 //         - model
 //          - ReservationDto.java
 //        - mapper
 //          - ReservationMapper.java
 //     - out
-//       - jpa
+//       - repository
 //         - JpaAdapter.java
 //         - model
 //           - ReservationEntity.java
@@ -80,14 +80,14 @@ image::hexagonal_component_architecture_overview.drawio.svg["devonfw hexagonal a
     │       └── [FindFreeTableService.java]
     └── adapter/
         ├── in/
-        │   └── rest/
+        │   └── web/
         │       ├── RestController.java
         │       ├── model/
         │       │   └── ReservationDto.java
         │       └── mapper/
         │           └── ReservationMapper.java
         └── out/
-            └── jpa/
+            └── repository/
                 ├── JpaAdapter.java
                 ├── model/
                 │   ├── ReservationEntity.java
@@ -228,31 +228,42 @@ application A1
                 └── (analog with packages)
 ----
 
-At the main level of the application there is the Bootstrap Module, which in Spring contains, for example, the configurations and SpringBootApplication.
-This module provides the starting point of the application and at the same time has a dependency on all cores and adapters of the business components.
-The business components, of which there can be any number, are also defined as modules at the main level.
-In the first step, we only assume one business module.
-This is divided into both the core module and the adapter module.
-In this way, core and adapter can define different dependencies and the core remains free of technical frameworks.
+Within the application we structure the individual business components using modules.
+The main purpose of this is to have a structure that is future-proof and allows multiple business components to be integrated.
+Modules at this level have the advantage that they can be developed independently and communication must be explicitly regulated.
+For the sake of simplicity, we initially only assume one business component.
+The business component is in turn divided into two further modules `core` and `adapter`.
+This separation allows the dependencies for both modules to be independent of each other and the core to remain free of technical frameworks.
+The direction of communication is also clearly regulated by the dependencies between core and adapter.
+In addition to the module for the business component, there is a `bootstrap` module that can be seen as a starting point for the application.
+When using Spring Boot, the `SpringBootApplication` and configurations can also be found here.
+This module in turn has a dependency on all business components (to be precise on their core and adapter).
 
-The adapters in turn are divided into `in` and `out` adapters as in the package structure described above.
-However, no division into modules is recommended here, but instead exclusively into packages.
-A division here into modules increases the complexity significantly and also makes the expansion of new adapters much more complex, as these also have to be made known to the bootstrap module.
-With a large number of adapters and a high number of different dependencies, a tradeoff is to further divide the in and out adapters into modules.
-However, the recommendation here is to initially use packages.
+With regard to the adapters, the recommendation is to create them within one module in the package structure mentioned above.
+This offers a good compromise between structuring and tailor-made dependencies and manageable complexity on the other hand.
+Given the usual level of complexity, it can be assumed that there are usually no more than 2-3 adapters, so structuring using packages is sufficient here.
+As complexity increases, two additional options become available:
 
-The management of dependencies should aim to define them as far "down" as possible.
-This means in particular that technical dependencies are always defined in the adapters.
-In order to keep versions consistent if possible, dependency management in the master pom can be used in Maven.
+1. Separate modules for in and out. This allows the frameworks for incoming and outgoing adapters to be maintained separately and provides an additional level of structuring.
+2. Individual modules for each adapter. This means that each adapter can be viewed and developed completely isolated.
+The dependencies can also be maintained independently.
+
+With both options, the complexity increases accordingly.
+The recommendation is to start with a package structure and divide it further if necessary.
+
+The management of dependencies should aim to define them as far "down" as possible and not on the root or business component level.
+In particular, technical frameworks such as JPA should be defined directly in the adapter module so that they are not available in the core module.
+In order to keep versions consistent, dependency management in the master pom can be used in Maven.
 The advantage of this is that the version only needs to be defined at the main level and does not need to be specified in every adapter pom.
+This approach also prevents the same framework from being used in different versions in the adapters.
 
-For internal dependencies it is necessary that the adapter has access to the core.
+It is necessary that the adapters can access the core and therefore have a dependency so that, on the one hand, incoming adapters can call logic in the core and, on the other hand, outgoing adapters from the core can be used.
+The latter is only possible via dependency inversion, as the core is not allowed to access the outgoing adapter directly.
+In this case, the out ports in the core are defined and used as an interface.
+The dependency injection framework in Spring or Quarkus then determines in the background the appropriate implementation from the out adapters that implement the out port interface.
+In this way, it is possible for the core to call functionality in the adapters without having a dependency in this direction.
 Under no circumstances should there be a dependency from the core to the adapter.
 This would mean that fundamental aspects of the hexagonal architecture could be undermined and technical frameworks could also be used in the core.
-However, this also makes it necessary for dependency inversion to be used, especially for the outgoing adapters.
-This means that the out adapter is injected as an interface in the core, and the DI framework such as Spring or Quarkus then determines a suitable implementation.
-This approach makes it possible to access the out adapters without having to have a dependency.
-
 
 NOTE: In case you are using Quarkus environment the dependency inversion is not possible out of the box.
 That means that outgoing ports cannot injected as expected which causes errors during application start.
@@ -351,7 +362,7 @@ This also means that there is no uniform Transfer Object (TO), but this must be 
 After the transformation has been completed, the two business components are separated into two applications / microservices.
 
 NOTE: It is important to note that this only highlights the benefits of a module-based hexagonal architecture and how it can be transformed into microservices.
-During the transition, a variety of other aspects such as distributed logging and tracing, resilient communication or distributed transactions must be taken into account.
+During the transition, a variety of other aspects such as database split, distributed logging and tracing, resilient communication or distributed transactions must be taken into account.
 These will not be considered further here and are independent of the backend architecture chosen.
 
 Of course, a combination of the options mentioned above (package-based, module-based, microservice-based) is also possible.
