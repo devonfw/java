@@ -195,15 +195,11 @@ This makes the application more difficult to understand and harder to locate the
 Therefore, we propose to implement the domain model as anemic entities and make usage of use cases and services to implement the business logic and interact with the domain models.
 
 == Module-based hexagonal component architecture
-The previously described approach of structuring using package structures is particularly suitable for lightweight and smaller applications.
+The previously described approach of using packages to maintain a hexagonal architecture is particularly suitable for lightweight and smaller applications.
 
 For larger applications, it makes sense to additionally implement the division using Maven or Gradle modules.
 This has the advantage that the application core of the hexagon remains completely without special technical frameworks such as JPA.
 As a result, it is technically not possible to use these functions in the core, which permanently leads to a "cleaner" core.
-
-//[[img-t-hexagonal-architecture-module]]
-//.Module-based hexagonal component architecture
-//image::hexagonal_component_architecture_modules.drawio.svg["devonfw hexagonal architecture module",scaledwidth="80%",align="center"]
 
 The division into modules looks like this:
 
@@ -211,7 +207,7 @@ The division into modules looks like this:
 ----
 application A1
 ├── bootstrap (module)
-└── component C1 (module)
+└── business component C1 (module)
     ├── core (module)
     │   ├── domain
     │   ├── port
@@ -239,8 +235,10 @@ In addition to the module for the business component, there is a `bootstrap` mod
 When using Spring Boot, the `SpringBootApplication` and configurations can also be found here.
 This module in turn has a dependency on all business components (to be precise on their core and adapter).
 
-With regard to the adapters, the recommendation is to create them within one module in the package structure mentioned above.
+The adapter module contains all incoming and outgoing adapters of a business component.
 This offers a good compromise between structuring and tailor-made dependencies and manageable complexity on the other hand.
+Therefore, we suggest to structure the adapter module using packages to differentiate incoming and outgoing adapters and on the next level the specifics of adapters like web, repository, etc.
+See the package project structure to get the full picture.
 Given the usual level of complexity, it can be assumed that there are usually no more than 2-3 adapters, so structuring using packages is sufficient here.
 As complexity increases, two additional options become available:
 
@@ -248,12 +246,12 @@ As complexity increases, two additional options become available:
 2. Individual modules for each adapter. This means that each adapter can be viewed and developed completely isolated.
 The dependencies can also be maintained independently.
 
-With both options, the complexity increases accordingly.
+With both options, the complexity of managing modules and explicit dependencies increases accordingly.
 The recommendation is to start with a package structure and divide it further if necessary.
 
-The management of dependencies should aim to define them as far "down" as possible and not on the root or business component level.
+Dependencies should be defined as far "down" as possible and not on the root or business component level.
 In particular, technical frameworks such as JPA should be defined directly in the adapter module so that they are not available in the core module.
-In order to keep versions consistent, dependency management in the master pom can be used in Maven.
+In order to keep versions consistent, link:https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management[dependency management] in the master pom can be used in Maven.
 The advantage of this is that the version only needs to be defined at the main level and does not need to be specified in every adapter pom.
 This approach also prevents the same framework from being used in different versions in the adapters.
 
@@ -263,11 +261,12 @@ In this case, the out ports in the core are defined and used as an interface.
 The dependency injection framework in Spring or Quarkus then determines in the background the appropriate implementation from the out adapters that implement the out port interface.
 In this way, it is possible for the core to call functionality in the adapters without having a dependency in this direction.
 Under no circumstances should there be a dependency from the core to the adapter.
-This would mean that fundamental aspects of the hexagonal architecture could be undermined and technical frameworks could also be used in the core.
+This would undermine the fundamental principle of a hexagonal architecture and destroy the benefits of it
 
 NOTE: In case you are using Quarkus environment the dependency inversion is not possible out of the box.
 That means that outgoing ports cannot injected as expected which causes errors during application start.
 In that case you can inject outgoing ports with `Instance<YourOutgoingPort>` which decouples the injection process.
+You can find detailed information about it link:https://quarkus.io/guides/cdi#hm-wait-a-minute-what-happens-if-multiple-beans-declare-the-same-type[here].
 
 === Multiple business components in modulithic high-level architecture
 
@@ -289,7 +288,13 @@ image::hexagonal_component_architecture_modules2.drawio.svg["devonfw hexagonal a
 
 A crucial aspect of several business components is their communication with each other.
 For example, it is necessary for business component C1 to communicate with component C2.
-For this you have to follow these steps:
+Since the business components are within one application, it is not necessary to use communication technologies such as REST.
+JVM based adapters can be used instead.
+In the simplest case, these can be achieved with synchronous communication using direct procedure calls.
+In the case of asynchronous communication, internal message providers such as link:https://www.baeldung.com/spring-events[Spring Events] can be used.
+These enable decoupling through events at the JVM level and are particularly useful if you plan to later distribute the business components across several applications.
+
+To enable communication between the business components, the following steps must be followed:
 
 * a Maven dependency from adapter C1 to adapter C2 need to be added
 * an `JVM In adapter` is created in component C2, which provides an interface, defines transport objects (TO) and enables these TOs to be mapped to the domain objects in the core of component C2.
@@ -299,7 +304,7 @@ For this you have to follow these steps:
 ----
 application A1
 ├── bootstrap (module)
-├── component C1 (module)
+├── business component C1 (module)
 │   ├── core (module)
 │   │   └── ...
 │   └── adapter (module)
@@ -314,7 +319,7 @@ application A1
 │                   ├── mapper
 │                   │   └── BookingMapper.java
 │                   └── BookingComponentC1OutAdapter.java
-└── component C2 (module)
+└── business component C2 (module)
     ├── core (module)
     │   └── ...
     └── adapter (module)
@@ -342,12 +347,11 @@ More on this in the next section.
 Increasing technical complexity or changing scaling requirements may make it necessary to (partially) convert the existing module structure into a microservice architecture over time.
 The previously selected structure of the hexagonal architecture and the explicit communication via JVM adapters enable such a transformation with relatively little effort.
 The decisive advantage is that communication takes place beforehand via firmly defined interfaces.
-These now have to be switched from a communication technology based purely on JVM means to a communication technology.
+These now have to be switched from a jvm-based communication to a communication technology e.g. REST.
 
 [[img-t-hexagonal-architecture-microservices]]
 .Module-based hexagonal component architecture with microservices
 image::hexagonal_component_architecture_microservices.drawio.svg["devonfw hexagonal architecture microservices",scaledwidth="80%",align="center"]
-
 
 Based on the previous example, business components C1 and C2 should now be divided into separate microservices.
 The transformation includes the following steps:
