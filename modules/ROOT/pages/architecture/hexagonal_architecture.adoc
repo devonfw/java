@@ -121,14 +121,15 @@ One big advantage of the hexagonal architecture is, that the adapters can be cha
 It needs to be distinguished between incoming ports and outgoing ports.
 
 | core.port.in
-| Incoming ports are the entry of the application. 
+a| Incoming ports are the entry of the application.
 They provide interfaces that are called from incoming adapters and hide the actual implementation. 
 A proposal of structuring incoming ports is naming them like single use cases (e.g. CancelReservationPort). 
 Each port should only provide a single method.
+
 .Design Decision
 [%collapsible]
 ====
-Incoming Ports are not as relevant for the hexagonal architecture as the outgoing ports. 
+Incoming Ports are not as relevant for the hexagonal architecture as the outgoing ports.
 Outgoing ports are used for the dependency inversion pattern. 
 For incoming ports could also call the use cases directly. 
 Therefore, an pragmatic alternative would be leaving out the incoming ports.
@@ -174,6 +175,7 @@ Inside the adapters further packages are differentiating the category of the ada
 |===
 
 
+[#_anemic_vs_rich_domain_models]
 == Anemic vs Rich domain models
 ====
 "In a rich domain model, as much of the domain logic as possible is implemented within the entities at the core of the application.
@@ -182,7 +184,7 @@ In an “anemic” domain model, the entities themselves are very thin.
 They usually only provide fields to hold." <<Hombergs21>>
 ====
 
-Considering java as an object oriented language it feels natural to implement business logic inside the entities themselves. 
+Considering java as an object oriented language it feels natural to implement business logic inside the entities themselves.
 In large scale application we propose to not use rich domain models.
 There are two reasons for this:
 

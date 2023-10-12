@@ -2,7 +2,7 @@
 ** xref:getting_started/create_rest_service.adoc[]
 * Architecture
 ** xref:architecture/layered_architecture.adoc[]
-** xref:architecture/hexagonale_architecture.adoc[]
+** xref:architecture/hexagonal_architecture.adoc[]
 
 * Integration
 ** xref:integration/rest_service.adoc[]
