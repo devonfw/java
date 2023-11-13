@@ -13,6 +13,7 @@
 * Persistence
 ** Relational Databases
 *** xref:persistence/jpa.adoc[]
+*** xref:persistence/performance.adoc[]
 *** xref:persistence/transactional.adoc[]
 
 * Cross cutting
