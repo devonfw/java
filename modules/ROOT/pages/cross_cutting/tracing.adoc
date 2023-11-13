@@ -4,7 +4,142 @@
 
 == Correlation ID
 
-Most of the time it is handy to find all the log messages created as a result of a user action, service request or message. To achieve this it is best practice to a a correlation ID to every message. A correlation ID is a number or string that is the same for all log messages of a user action, service request or message but different for different user actions, service requests or messages. With that it is possible to filter the log messages. This uniqueness can be achieved by using a `UUID` as correlation ID.
+Most of the time it is handy to find all the log messages created as a result of a user action, service request or message. To achieve this it is best practice to add a correlation ID to every message. A correlation ID is a number or string that is the same for all log messages of a user action, service request or message but different for different user actions, service requests or messages. With that it is possible to filter the log messages. This uniqueness can be achieved by using a `UUID` as correlation ID.
 
 The correlation ID is generated when a new user action, service request or message occurs. In distributed systems it is important to pass the correlation ID to called service to be able to find the log messages for the complete system.
 For HTTP calls this is usually done in the header field `X-Correlation-Id`. For messaging systems like queues or service busses there is usually a special file in the message header to store the correlation ID.
+
+== Observability
+
+=== How to set up an observability stack with Grafana, Prometheus, Tempo and Loki
+
+This short guide shows how to build an observability stack using Grafana, Prometheus, Tempo and Loki.
+
+*The prerequisite* is a spring boot app that is previously containerized with docker.
+
+You also need Kubernetes installed, which comes with Rancher Desktop.
+
+Helm should also be installed.
+
+==== Overview
+The following graphic shows how a Grafana stack is usually built up. Several services are used for this.
+
+
+image:grafana_stack_overview smaller.jpg["Overview Grafana-stack",scalewidth="80%",align="center"]
+
+Build up the following folder-structure in your application-project:
+
+[subs=+macros]
+----
+├──/project-folder
+|  ├──/kubernetes
+|  ├─────/loki
+|  |      └──/loki.yaml
+|  ├─────/prometheus-grafana
+|  |      └──/chart.yaml
+|  |      └──/values.yaml
+|  ├─────/promtrail
+|  |      └──/promtrail.yaml
+|  ├─────/springboot-app
+|  |      └──/springboot-app.yaml
+|  ├─────/tempo
+|  |      └──/tempo.yaml
+|  └──/springboot-app
+|     ├──/source
+|     |  └──/main
+|     |  └──/test
+|     └──...
+
+----
+
+We add the charts we need for our services and update the Helm repository:
+
+[source,shell]
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+
+After we have done this, we will create a namespace for the observability tools. To do so, go to the shell and type in:
+[source,shell]
+kubectl create ns observability
+
+==== Install Promtail and Loki
+
+To install Promtail, run:
+[source,shell]
+cd promtail
+helm upgrade --install promtail grafana/promtail -n observability -f promtail.yaml
+
+Deploy Loki inside the cluster:
+[source,shell]
+helm upgrade --install loki grafana/loki-distributed -n observability
+
+We are interested in the `loki-loki-distributed-gateway` service by Loki in order to get the logs send. `Grafana` also needs that as a datasource.
+
+==== Installing Tempo
+
+To install Tempo as a prerequisite we need to install minio. This is a tool that helps us to simulate an AWS Object Storage s3 service.
+
+[source,shell]
+cd ../tempo
+kubectl apply -f minio.yaml
+
+To deploy Tempo, run:
+[source,shell]
+helm upgrade --install tempo grafana/tempo-distributed -n observability -f tempo.yaml
+
+==== Install Prometheus and Grafana
+
+[source,shell]
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+after that, run:
+[source,shell]
+cd ../prometheus-grafana
+helm dependency update
+helm upgrade --install kube-prometheus-stack -n observability .
+
+==== checking the deployments
+The following command
+
+[source,shell]
+helm ls -n observability
+
+will show us this
+
+image::show_deployed_services.png["list with deployed services kubernetes",scaledwidth="80%",align="center"]
+
+[source,shell]
+kubectl get svc -n observability
+
+will give us a list with all deployed services on our created namespace which we called `observability`.
+
+image::kubectl_get-svc-namespace.gif["list all services in kubernetes namespace",scalewidth="85%",align="center"]
+
+After done this, we have to deploy our Springboot-Application on Kubernetes. For that, go to the springboot-app/ directory and run the kubectl command:
+[source,shell]
+cd ../springboot-app
+kubectl apply -f springboot-app.yaml
+
+NOTE: You can name the yaml-file anything you like, e.g.: deployment.yaml
+
+After successul deployment on Kubernetes, point out the external ip-address, on which the springboot-app run with:
+[source,shell]
+kubectl get deploy,svc,cm -l app=springboot-app
+
+and obtain out the port for Grafana running:
+[source,shell]
+kubectl get svc -n observability
+
+==== Testing the endpoints
+
+The Springboot-Application can be tested via the URL:
+http://EXTERNAL-IP:8080/ENDPOINT
+
+Grafana should be accessed with:
+http://EXTERNAL-IP:PORT-FOR-GRAFANA
+
+
+== References
+* link:https://opentelemetry.io/docs/instrumentation/java/[OpenTelemetry with Java]
+* link:https://grafana.com/docs/[Grafana Docs]
